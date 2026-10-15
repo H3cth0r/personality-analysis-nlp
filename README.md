@@ -43,20 +43,30 @@ locks `uv.lock`.
 
 ## Data
 
-Download (CC BY-NC-SA — research use only, never commit these files):
-https://huggingface.co/datasets/CRIS-Yang/Persona-E2-Dataset
+Download everything (CC BY-NC-SA — research use only, never commit these
+files; `data/` is gitignored):
 
-Put the 3 CSVs in `data/raw/`:
+```bash
+mkdir -p data/raw/lexicons
 
-| File | Goes to |
-|---|---|
-| `1_dataset_all_annotators.csv` | `data/raw/` |
-| `2_dataset_group_consensus.csv` | `data/raw/` |
-| `3_annotator_profiles.csv` | `data/raw/` |
+# Persona-E2 dataset (3 files, ~8 MB)
+curl -L "https://huggingface.co/datasets/CRIS-Yang/Persona-E2-Dataset/resolve/main/1_dataset_all_annotators.csv" -o data/raw/1_dataset_all_annotators.csv
+curl -L "https://huggingface.co/datasets/CRIS-Yang/Persona-E2-Dataset/resolve/main/2_dataset_group_consensus.csv" -o data/raw/2_dataset_group_consensus.csv
+curl -L "https://huggingface.co/datasets/CRIS-Yang/Persona-E2-Dataset/resolve/main/3_annotator_profiles.csv" -o data/raw/3_annotator_profiles.csv
 
-NRC VAD lexicon → `data/raw/lexicons/` (Priya22/EmotionDynamics on GitHub).
+# NRC VAD lexicon (the feeling-word dictionary for Task 3)
+curl -L "https://raw.githubusercontent.com/Priya22/EmotionDynamics/master/lexicons/NRC_EmoLex_NRC-VAD-Lexicon.txt" -o data/raw/lexicons/NRC-VAD-Lexicon.txt
+```
 
-`data/` is gitignored. Everything regenerates from raw.
+Check you got the right files:
+
+```bash
+ls -la data/raw/          # ~5.1 MB + ~2.6 MB + ~1.5 KB
+ls -la data/raw/lexicons  # ~530 KB
+```
+
+Everything downstream regenerates from these files: notebook `00_setup`
+reads them and builds `data/processed/events.parquet`.
 
 ## Run
 
