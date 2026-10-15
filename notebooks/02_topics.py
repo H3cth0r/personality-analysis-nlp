@@ -54,22 +54,22 @@ def _(mo):
 
 @app.cell
 def _(SPEAKERS, counting, plt):
-    FIG, (AX1, AX2) = plt.subplots(1, 2, figsize=(13, 5))
+    T2_FIG, (T2_AX1, T2_AX2) = plt.subplots(1, 2, figsize=(13, 5))
     for _, pile_a in SPEAKERS.groupby("annotator"):
         growth = counting.vocab_growth(pile_a["english_item"])
-        AX1.plot(growth["tokens"], growth["vocab_size"], linewidth=1)
+        T2_AX1.plot(growth["tokens"], growth["vocab_size"], linewidth=1)
         frac = growth["tokens"] / growth["tokens"].iloc[-1]
-        AX2.plot(frac, growth["vocab_size"], linewidth=1)
-    AX1.set_title("raw tokens", fontsize=10)
-    AX1.set_xlabel("tokens so far")
-    AX1.set_ylabel("vocabulary size")
-    AX2.set_title("fraction of pile", fontsize=10)
-    AX2.set_xlabel("fraction of the speaker's texts read")
-    AX2.set_ylabel("vocabulary size")
-    FIG.tight_layout()
-    FIG.savefig("outputs/figures/task2_vocab_growth.png", dpi=150)
-    FIG
-    return (FIG,)
+        T2_AX2.plot(frac, growth["vocab_size"], linewidth=1)
+    T2_AX1.set_title("raw tokens", fontsize=10)
+    T2_AX1.set_xlabel("tokens so far")
+    T2_AX1.set_ylabel("vocabulary size")
+    T2_AX2.set_title("fraction of pile", fontsize=10)
+    T2_AX2.set_xlabel("fraction of the speaker's texts read")
+    T2_AX2.set_ylabel("vocabulary size")
+    T2_FIG.tight_layout()
+    T2_FIG.savefig("outputs/figures/task2_vocab_growth.png", dpi=150)
+    T2_FIG
+    return (T2_FIG,)
 
 
 @app.cell
@@ -105,11 +105,11 @@ def _(mo):
 
 @app.cell
 def _(SPEAKERS, plt, topics):
-    SWEEPS = {}
-    FIG2, AXES = plt.subplots(6, 6, figsize=(17, 14))
-    for ax, (name_b, pile_b) in zip(AXES.flat, SPEAKERS.groupby("annotator")):
+    T2_SWEEPS = {}
+    T2_FIG2, T2_AXES = plt.subplots(6, 6, figsize=(17, 14))
+    for ax, (name_b, pile_b) in zip(T2_AXES.flat, SPEAKERS.groupby("annotator")):
         result = topics.sweep_speaker(name_b, pile_b["english_item"])
-        SWEEPS[name_b] = result
+        T2_SWEEPS[name_b] = result
         ax2 = ax.twinx()
         l1 = ax.plot(result["k"], result["coherence"], "o-", label="coherence")
         l2 = ax2.plot(result["k"], result["perplexity"], "s--",
@@ -117,32 +117,32 @@ def _(SPEAKERS, plt, topics):
         ax.set_title(name_b, fontsize=9)
         ax.tick_params(labelsize=7)
         ax2.tick_params(labelsize=7)
-    AXES[0, 0].legend(l1 + l2, ["coherence", "perplexity"], fontsize=8)
-    FIG2.supxlabel("number of topics (k)")
-    FIG2.tight_layout()
-    FIG2.savefig("outputs/figures/task2_lda_sweeps.png", dpi=150)
-    FIG2
-    return (FIG2, SWEEPS)
+    T2_AXES[0, 0].legend(l1 + l2, ["coherence", "perplexity"], fontsize=8)
+    T2_FIG2.supxlabel("number of topics (k)")
+    T2_FIG2.tight_layout()
+    T2_FIG2.savefig("outputs/figures/task2_lda_sweeps.png", dpi=150)
+    T2_FIG2
+    return (T2_FIG2, T2_SWEEPS)
 
 
 @app.cell
-def _(PROFILES, SWEEPS, pd, topics):
-    BEST = pd.DataFrame(
-        {"best_k": {name2: topics.best_k(r) for name2, r in SWEEPS.items()},
-         "coherence": {name2: r["coherence"].max() for name2, r in SWEEPS.items()}}
+def _(PROFILES, T2_SWEEPS, pd, topics):
+    T2_BEST = pd.DataFrame(
+        {"best_k": {name2: topics.best_k(r) for name2, r in T2_SWEEPS.items()},
+         "coherence": {name2: r["coherence"].max() for name2, r in T2_SWEEPS.items()}}
     )
-    TRAIT_COLS = ["Open.", "Cons.", "Extra.", "Agree.", "Neuro."]
-    TRAIT_NAMES = ["openness", "conscientiousness", "extraversion",
+    T2_TRAIT_COLS = ["Open.", "Cons.", "Extra.", "Agree.", "Neuro."]
+    T2_TRAIT_NAMES = ["openness", "conscientiousness", "extraversion",
                    "agreeableness", "neuroticism"]
-    TRAITS = (PROFILES.set_index("ID")[TRAIT_COLS]
-              .rename(columns=dict(zip(TRAIT_COLS, TRAIT_NAMES))))
-    JOINED = BEST.join(TRAITS)
-    CORR = (JOINED.corr(method="spearman")
-            .loc[TRAIT_NAMES, ["best_k", "coherence"]])
-    JOINED.to_csv("outputs/tables/task2_best_topics.csv")
-    CORR.round(3).to_csv("outputs/tables/task2_trait_correlations.csv")
-    BEST
-    return (BEST, CORR, JOINED, TRAIT_NAMES)
+    T2_TRAITS = (PROFILES.set_index("ID")[T2_TRAIT_COLS]
+              .rename(columns=dict(zip(T2_TRAIT_COLS, T2_TRAIT_NAMES))))
+    T2_JOINED = T2_BEST.join(T2_TRAITS)
+    T2_CORR = (T2_JOINED.corr(method="spearman")
+            .loc[T2_TRAIT_NAMES, ["best_k", "coherence"]])
+    T2_JOINED.to_csv("outputs/tables/task2_best_topics.csv")
+    T2_CORR.round(3).to_csv("outputs/tables/task2_trait_correlations.csv")
+    T2_BEST
+    return (T2_BEST, T2_CORR, T2_JOINED, T2_TRAIT_NAMES)
 
 
 @app.cell
@@ -158,8 +158,8 @@ def _(mo):
 
 
 @app.cell
-def _(CORR, mo):
-    CORR
+def _(T2_CORR, mo):
+    T2_CORR
     return
 
 
