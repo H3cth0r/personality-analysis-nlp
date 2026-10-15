@@ -16,8 +16,7 @@ def _(mo):
         """
         # 00 — Setup
 
-        Load Persona-E2. Run checks. Build `events.parquet`
-        (contract: planning file 04).
+        Load Persona-E2. Run checks. Build `events.parquet`.
         """
     )
     return
