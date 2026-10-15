@@ -223,3 +223,7 @@ __marimo__/
 data/**
 !data/**/
 !data/**/.gitkeep
+
+# build artifacts (regenerable)
+reports/*.html
+reports/__marimo__/

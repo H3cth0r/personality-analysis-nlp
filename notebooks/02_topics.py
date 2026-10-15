@@ -7,19 +7,18 @@ app = marimo.App(width="medium")
 @app.cell
 def _():
     import marimo as mo
+
     return (mo,)
 
 
 @app.cell
 def _(mo):
-    mo.md(
-        """
-        # 02 — Topic change (Task 2)
+    mo.md("""
+    # 02 — Topic change (Task 2)
 
-        Hypothesis: people who change topics introduce new words fast and
-        have more topic piles. Owner: A (Hector).
-        """
-    )
+    Hypothesis: people who change topics introduce new words fast and
+    have more topic piles.
+    """)
     return
 
 
@@ -32,7 +31,7 @@ def _():
 
     SPEAKERS = data.load_speakers()
     PROFILES = data.load_profiles()
-    return PROFILES, SPEAKERS, counting, data, pd, plt, topics
+    return PROFILES, SPEAKERS, counting, pd, plt, topics
 
 
 @app.cell
@@ -55,8 +54,8 @@ def _(mo):
 @app.cell
 def _(SPEAKERS, counting, plt):
     T2_FIG, (T2_AX1, T2_AX2) = plt.subplots(1, 2, figsize=(13, 5))
-    for _, pile_a in SPEAKERS.groupby("annotator"):
-        growth = counting.vocab_growth(pile_a["english_item"])
+    for _, pile_b in SPEAKERS.groupby("annotator"):
+        growth = counting.vocab_growth(pile_b["english_item"])
         T2_AX1.plot(growth["tokens"], growth["vocab_size"], linewidth=1)
         frac = growth["tokens"] / growth["tokens"].iloc[-1]
         T2_AX2.plot(frac, growth["vocab_size"], linewidth=1)
@@ -69,7 +68,7 @@ def _(SPEAKERS, counting, plt):
     T2_FIG.tight_layout()
     T2_FIG.savefig("outputs/figures/task2_vocab_growth.png", dpi=150)
     T2_FIG
-    return (T2_FIG,)
+    return
 
 
 @app.cell
@@ -107,8 +106,8 @@ def _(mo):
 def _(SPEAKERS, plt, topics):
     T2_SWEEPS = {}
     T2_FIG2, T2_AXES = plt.subplots(6, 6, figsize=(17, 14))
-    for ax, (name_b, pile_b) in zip(T2_AXES.flat, SPEAKERS.groupby("annotator")):
-        result = topics.sweep_speaker(name_b, pile_b["english_item"])
+    for ax_b, (name_b, pile_c) in zip(T2_AXES.flat, SPEAKERS.groupby("annotator")):
+        result = topics.sweep_speaker(name_b, pile_c["english_item"])
         T2_SWEEPS[name_b] = result
         ax2 = ax.twinx()
         l1 = ax.plot(result["k"], result["coherence"], "o-", label="coherence")
@@ -122,7 +121,7 @@ def _(SPEAKERS, plt, topics):
     T2_FIG2.tight_layout()
     T2_FIG2.savefig("outputs/figures/task2_lda_sweeps.png", dpi=150)
     T2_FIG2
-    return (T2_FIG2, T2_SWEEPS)
+    return (T2_SWEEPS,)
 
 
 @app.cell
@@ -142,7 +141,7 @@ def _(PROFILES, T2_SWEEPS, pd, topics):
     T2_JOINED.to_csv("outputs/tables/task2_best_topics.csv")
     T2_CORR.round(3).to_csv("outputs/tables/task2_trait_correlations.csv")
     T2_BEST
-    return (T2_BEST, T2_CORR, T2_JOINED, T2_TRAIT_NAMES)
+    return (T2_CORR,)
 
 
 @app.cell
@@ -158,7 +157,7 @@ def _(mo):
 
 
 @app.cell
-def _(T2_CORR, mo):
+def _(T2_CORR):
     T2_CORR
     return
 
