@@ -72,10 +72,10 @@ reads them and builds `data/processed/events.parquet`.
 ```bash
 # one notebook
 uv run marimo edit notebooks/01_count_words.py
-
-# all of it: merge into one submission notebook
-uv run python scripts/build_submission.py
 ```
+
+The submission notebook (one Jupyter file with all tasks) gets assembled
+at the end of the project.
 
 ## Layout
 
@@ -84,7 +84,7 @@ docs/             brief
 data/             raw/, interim/, processed/   (gitignored)
 notebooks/        one marimo notebook per task (00…07)
 src/personality/  the logic: loading, counting, topics, lexicon, embeddings
-scripts/          merge script + build helpers
+scripts/          build helpers (sweep runner, final assembly later)
 outputs/          figures/ + tables/ — committed, the evidence
 reports/          final PDF + draft
 ```
