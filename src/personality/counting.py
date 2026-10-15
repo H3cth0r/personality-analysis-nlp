@@ -94,3 +94,26 @@ def chunked_series(texts, chunks=10):
             "no_words": int(upto["no_words"].sum()),
         })
     return pd.DataFrame(rows)
+
+
+def vocab_growth(texts, chunks=10):
+    """Vocabulary size as tokens accumulate, in reading order.
+
+    Same stepping as chunked_series. Returns a DataFrame: tokens so far
+    vs different words so far — a "how many new words by now?" curve.
+    """
+    rows = []
+    seen = set()
+    tokens = 0
+    for text in texts:
+        pile = tokenize(text)
+        tokens += len(pile)
+        seen.update(pile)
+        rows.append({"tokens": tokens, "vocab_size": len(seen)})
+    growth = pd.DataFrame(rows)
+    if growth.empty:
+        return growth
+    step = (len(growth) - 1) / chunks
+    marks = pd.DataFrame([growth.iloc[round(i * step)].to_dict()
+                          for i in range(1, chunks + 1)])
+    return marks
