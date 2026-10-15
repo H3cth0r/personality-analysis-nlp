@@ -1,0 +1,6 @@
+,tokens,vocabulary_size,repetitions,yes_words,no_words
+openness,0.068,0.005,0.076,0.127,0.081
+conscientiousness,0.005,0.014,0.03,-0.03,0.04
+extraversion,-0.156,-0.137,-0.176,-0.223,-0.163
+agreeableness,-0.143,-0.139,-0.163,-0.18,-0.154
+neuroticism,0.155,0.15,0.14,0.209,0.14
