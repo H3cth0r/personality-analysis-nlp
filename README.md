@@ -67,15 +67,34 @@ ls -la data/raw/lexicons  # ~530 KB
 Everything downstream regenerates from these files: notebook `00_setup`
 reads them and builds `data/processed/events.parquet`.
 
-## Run
+## Notebooks
+
+One marimo notebook per task (`00_setup` … `07_authors_method`), plain
+Python cells. Run any of them with:
 
 ```bash
-# one notebook
-uv run marimo edit notebooks/01_count_words.py
+# live + editable — the working mode
+uv run marimo edit notebooks/00_setup.py
+
+# read-only app view (for showing around)
+uv run marimo run notebooks/01_count_words.py
+
+# static, self-contained, already executed:
+uv run marimo export html notebooks/01_count_words.py -o /tmp/01.html
+
+# plain Jupyter notebook:
+uv run marimo export ipynb notebooks/01_count_words.py -o /tmp/01.ipynb
 ```
 
-The submission notebook (one Jupyter file with all tasks) gets assembled
-at the end of the project.
+First-run notes, per machine:
+
+- Data must be in `data/raw/` (see Data above). Everything else builds
+  itself: the notebooks cache their outputs under `data/`
+  (`events.parquet`, `speakers.parquet`, LDA sweeps) and re-use them.
+- The LDA sweep (notebook `02_topics`) takes ~30 min ONCE per machine,
+  run by `uv run python scripts/sweep_topics.py`. After that, seconds.
+- The submission notebook (one Jupyter file with all tasks) gets
+  assembled at the end of the project.
 
 ## Layout
 
