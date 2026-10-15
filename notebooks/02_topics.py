@@ -109,12 +109,12 @@ def _(SPEAKERS, plt, topics):
     for ax_b, (name_b, pile_c) in zip(T2_AXES.flat, SPEAKERS.groupby("annotator")):
         result = topics.sweep_speaker(name_b, pile_c["english_item"])
         T2_SWEEPS[name_b] = result
-        ax2 = ax.twinx()
-        l1 = ax.plot(result["k"], result["coherence"], "o-", label="coherence")
+        ax2 = ax_b.twinx()
+        l1 = ax_b.plot(result["k"], result["coherence"], "o-", label="coherence")
         l2 = ax2.plot(result["k"], result["perplexity"], "s--",
                       color="gray", label="perplexity")
-        ax.set_title(name_b, fontsize=9)
-        ax.tick_params(labelsize=7)
+        ax_b.set_title(name_b, fontsize=9)
+        ax_b.tick_params(labelsize=7)
         ax2.tick_params(labelsize=7)
     T2_AXES[0, 0].legend(l1 + l2, ["coherence", "perplexity"], fontsize=8)
     T2_FIG2.supxlabel("number of topics (k)")
