@@ -38,6 +38,21 @@ def _():
 def _(mo):
     mo.md("""
     ## The five counts, per speaker
+
+    One row = one speaker (E1–E36). Counts span all their texts.
+
+    - **vocabulary_size** — how many *different* words they used
+      (lemmatized: "agreed" counts as "agree").
+    - **tokens** — how many words in total.
+    - **repetitions** — how many times a word is *reused inside one text*.
+      A text with 30 words and 25 different ones repeats 5.
+    - **yes_words** — agree-words (yes, OK, sure…), counted by our frozen
+      list.
+    - **no_words** — negation words (no, not, never…), same list idea.
+
+    The right-side columns are their personality scores (0–1), from the
+    dataset. Read the traits together with the counts below (Personality
+    table).
     """)
     return
 
@@ -74,8 +89,24 @@ def _(mo):
     mo.md("""
     ## Evolution: repetitions, yes-words, no-words vs tokens
 
-    One panel per speaker. Cumulative counts at 10 chunk boundaries
-    (reading order, text-granular).
+    Each small panel = one speaker. The lines are "how many by now?"
+    counters: we walk through their texts in reading order, and at 10
+    checkpoints we note the total reached so far.
+
+    - x axis = words read so far.
+    - y axis = repetitions / negations / confirmations accumulated so far.
+
+    How to read it:
+
+    - A straight rising line = the habit is *constant* — the person
+      repeats (or negates) at the same rate from the first text to the
+      last.
+    - A curve or jump = the habit changes somewhere along the pile.
+    - Compare speakers by **slope**, not by height: a bigger pile just
+      makes a longer line.
+
+    What the task wants to see: do the habits *change* as more words are
+    used? Below: they barely do — all lines look straight.
     """)
     return
 
@@ -118,6 +149,23 @@ def _(mo):
 def _(mo):
     mo.md("""
     ## Personality (annotator BFI, 0–1)
+
+    A **correlation table**. The question it answers: *when a personality
+    score is high, does a word count also tend to be high?*
+
+    - rows = the 5 personality traits.
+    - columns = the 5 word counts.
+    - each cell = a number from **−1 to +1**:
+      +1 = the two rise together; 0 = no link; −1 = one rises while the
+      other falls.
+    - method = Spearman (rank-based; robust to our small count ranges).
+
+    Example reading: neuroticism × yes_words = 0.21 — slightly emotional
+    speakers tend to use slightly more agree-words. Small number = weak
+    link, a trend across 36 people, never a rule.
+
+    This is the Task-1 question "are some attributes associated with some
+    personality patterns?" — the answer sits in the comment below.
     """)
     return
 
