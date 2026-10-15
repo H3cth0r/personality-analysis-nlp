@@ -5,6 +5,7 @@ description = "Project 13 - Personality Analysis on the Persona-E2 dataset (NLP 
 requires-python = ">=3.11"
 dependencies = [
     "pandas",
+    "pyarrow",       # parquet engine (the file contract runs on parquet)
     "marimo",
     "matplotlib",
     "gensim",        # LDA (Task 2)
