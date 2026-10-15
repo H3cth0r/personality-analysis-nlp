@@ -17,7 +17,6 @@ def _(mo):
     # 01 — Speaker stats (Task 1)
 
     Rule A piles (non-neutral reactions). Text column: `english_item`.
-    Owner: A.
     """)
     return
 
@@ -59,27 +58,40 @@ def _(mo):
 
 @app.cell
 def _(PROFILES, SPEAKERS, counting, pd):
-    ROWS = {
+    T1_ROWS = {
         name: counting.speaker_stats(pile["english_item"])
         for name, pile in SPEAKERS.groupby("annotator")
     }
-    STATS = pd.DataFrame(ROWS).T.drop(columns="vocabulary_set").astype(int)
-    TRAIT_COLS = ["Open.", "Cons.", "Extra.", "Agree.", "Neuro."]
-    TRAIT_NAMES = ["openness", "conscientiousness", "extraversion",
+    T1_STATS = pd.DataFrame(T1_ROWS).T.drop(columns="vocabulary_set").astype(int)
+    T1_TRAIT_COLS = ["Open.", "Cons.", "Extra.", "Agree.", "Neuro."]
+    T1_TRAIT_NAMES = ["openness", "conscientiousness", "extraversion",
                    "agreeableness", "neuroticism"]
-    TRAITS = (PROFILES.set_index("ID")[TRAIT_COLS]
-              .rename(columns=dict(zip(TRAIT_COLS, TRAIT_NAMES))))
-    JOINED = STATS.join(TRAITS)
-    STATS.to_csv("outputs/tables/task1_speaker_stats.csv")
-    JOINED
-    return JOINED, TRAIT_NAMES
+    T1_TRAITS = (PROFILES.set_index("ID")[T1_TRAIT_COLS]
+              .rename(columns=dict(zip(T1_TRAIT_COLS, T1_TRAIT_NAMES))))
+    T1_JOINED = T1_STATS.join(T1_TRAITS)
+    T1_STATS.to_csv("outputs/tables/task1_speaker_stats.csv")
+    T1_JOINED
+    return T1_JOINED, T1_TRAIT_NAMES
 
 
 @app.cell
 def _(mo):
     mo.md("""
-    Vocab size: 7,465–9,710 lemmas. Tokens: 104k–167k.
-    Pile size varies per speaker — Rule A effect (see comment below).
+    **What the table says:** speakers differ most in their *pile*, not in
+    their words.
+
+    - Vocabulary size sits in a tight band: 7.5k–9.7k lemmas (~15% spread)
+      across all 36 people.
+    - Tokens: 104k–167k (~30% spread) — this follows from pile size,
+      i.e. *how many stories made them feel something*.
+    - Repetitions: ~45.7k of ~139k tokens — about a third of every pile is
+      words said again inside the same text (mostly small common words).
+    - Confirmations are rare: ~199 yes-words vs ~1,928 no-words per pile,
+      a ~10:1 gap in every speaker.
+
+    So the word habits themselves are remarkably alike. Any personality
+    signal must live in the small variations — the correlation table does
+    that check below.
     """)
     return
 
@@ -115,8 +127,8 @@ def _(mo):
 def _(SPEAKERS, counting, plt):
     from matplotlib.ticker import MaxNLocator
 
-    FIG, AXES = plt.subplots(6, 6, figsize=(17, 14), sharex=False)
-    for ax, (name, pile) in zip(AXES.flat, SPEAKERS.groupby("annotator")):
+    T1_FIG, T1_AXES = plt.subplots(6, 6, figsize=(17, 14), sharex=False)
+    for ax, (name, pile) in zip(T1_AXES.flat, SPEAKERS.groupby("annotator")):
         series = counting.chunked_series(pile["english_item"], chunks=10)
         ax.plot(series["tokens"], series["repetitions"], label="repetitions")
         ax.plot(series["tokens"], series["no_words"], label="negations")
@@ -125,22 +137,29 @@ def _(SPEAKERS, counting, plt):
         ax.tick_params(labelsize=7)
         ax.xaxis.set_major_locator(MaxNLocator(4))
         ax.yaxis.set_major_locator(MaxNLocator(5))
-    for ax in AXES.flat:
+    for ax in T1_AXES.flat:
         ax.set_xlabel("")
         ax.set_ylabel("")
-    AXES[0, 0].legend(fontsize=8)
-    FIG.supxlabel("tokens so far")
-    FIG.tight_layout()
-    FIG.savefig("outputs/figures/task1_evolution.png", dpi=150)
-    FIG
+    T1_AXES[0, 0].legend(fontsize=8)
+    T1_FIG.supxlabel("tokens so far")
+    T1_FIG.tight_layout()
+    T1_FIG.savefig("outputs/figures/task1_evolution.png", dpi=150)
+    T1_FIG
     return
 
 
 @app.cell
 def _(mo):
     mo.md("""
-    All three counts grow near-linearly with tokens: the word habits are
-    steady across each pile, not concentrated in later texts.
+    **What the grid says:** word habits do not change over the pile.
+
+    - Every line is near-straight: repetitions, negations and confirmations
+      accumulate at a constant rate from the first text to the last.
+    - The small bends come from chunk boundaries landing between texts
+      (texts are not equal-length), not from behavior changes.
+    - Meaning: nobody "warms up" or "cools down" mid-pile — so differences
+      between people, if any, are *level* differences (slope), not changes
+      along the way.
     """)
     return
 
@@ -171,38 +190,47 @@ def _(mo):
 
 
 @app.cell
-def _(JOINED, TRAIT_NAMES):
-    CORR = (JOINED[["tokens", "vocabulary_size", "repetitions", "yes_words",
-                    "no_words"] + TRAIT_NAMES]
+def _(T1_JOINED, T1_TRAIT_NAMES):
+    T1_CORR = (T1_JOINED[["tokens", "vocabulary_size", "repetitions", "yes_words",
+                    "no_words"] + T1_TRAIT_NAMES]
             .corr(method="spearman")
-            .loc[TRAIT_NAMES, ["tokens", "vocabulary_size", "repetitions",
+            .loc[T1_TRAIT_NAMES, ["tokens", "vocabulary_size", "repetitions",
                                "yes_words", "no_words"]])
-    CORR.round(3).to_csv("outputs/tables/task1_trait_correlations.csv")
-    CORR.round(2)
+    T1_CORR.round(3).to_csv("outputs/tables/task1_trait_correlations.csv")
+    T1_CORR.round(2)
     return
 
 
 @app.cell
 def _(mo):
     mo.md("""
-    ## Comment (Task 1)
+    **What the correlation table says:** the only visible ties are one-
+    directional and weak.
 
-    - Piles: 1,863–3,018 texts, 104k–167k tokens per speaker. Enough text
-      for all counts.
-    - Vocab size differs little between speakers (7.5k–9.7k lemmas,
-      mean 8,707): everyone reads similar-sized piles of similar content.
-    - Counts are high but similar across speakers too (mean 45.7k
-      repetitions, 1,928 negations, 199 confirmations per pile).
-    - Negations outnumber confirmations ~10:1 in every pile.
-    - Correlations are weak (n = 36, max |r| = 0.22, Spearman):
-      neuroticism + on all five counts; extraversion and agreeableness −;
-      openness and conscientiousness ≈ 0.
-    - **Main confound:** Rule A makes pile size trait-dependent —
-      reactive (higher-N) people qualify more events. Count-level
-      differences therefore partly measure engagement volume, not word
-      style. Compare with care.
-    - Similarity: speakers vary more in *how much* they engage than in
-      *how* they word things — vocabulary sizes cluster tightly.
+    - Neuroticism: + with all five counts (0.14–0.21). Reading: more
+      emotional people qualify *more* events (bigger piles — Rule A effect)
+      and use slightly more yes-words and no-words per event.
+    - Extraversion and agreeableness: small negatives (−0.14 to −0.22).
+    - Openness and conscientiousness: ≈ 0 — no link with these counts.
+
+    Magnitude check: max |r| = 0.22 at n = 36 is within chance range —
+    treat every number as a direction, not an effect.
+    """)
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md("""
+    ## Task 1 verdict
+
+    Word habits are strikingly similar across the 36 speakers; the real
+    differentiator is *how much they engage* (pile size), which itself is
+    partly personality-shaped (neuroticism). Weak support, then, for
+    "word habits show personality" — and partly confounded: under Rule A,
+    pile size is trait-dependent by construction. The texts are also the
+    events' words, not the speakers' own writing (structural weakness,
+    revisited in Task 8). n = 36: nothing here is statistically strong.
     """)
     return
 
