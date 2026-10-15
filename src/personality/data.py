@@ -1,4 +1,4 @@
-"""Loading and checking of the Persona-E2 data (Step 0.2)."""
+"""Loading and checking of the Persona-E2 data."""
 from pathlib import Path
 
 import pandas as pd
@@ -10,7 +10,7 @@ ANNOTATORS = range(1, 37)
 EMO_COLS = [f"E{n}_emotion" for n in ANNOTATORS]
 CONF_COLS = [f"E{n}_confidence" for n in ANNOTATORS]
 
-# columns kept for events.parquet - the contract is in planning file 04
+# columns kept for events.parquet
 EVENT_COLS = ["id", "english_item", "data_source", "category"]
 
 
@@ -30,7 +30,7 @@ def load_group_consensus(path=RAW_DIR / "2_dataset_group_consensus.csv"):
 
 
 def build_events(raw):
-    """Keep only the contract columns; wide format, one row per event."""
+    """Keep only the needed columns; one row per event."""
     missing = [c for c in EVENT_COLS + EMO_COLS + CONF_COLS if c not in raw.columns]
     if missing:
         raise KeyError(f"expected columns missing from raw CSV: {missing}")
@@ -54,9 +54,8 @@ def load_events(path=PROCESSED_DIR / "events.parquet"):
 
 
 def build_speakers(events):
-    """Rule A piles (planning 03 §4): a speaker's texts = the events where
-    they reported a non-neutral emotion. Long format, one row per
-    (annotator, event), each row carrying the event text.
+    """One row per (annotator, event) pair where the annotator felt
+    a non-neutral emotion. Each row carries the event text.
     """
     parts = []
     for n, emo_col in enumerate(EMO_COLS, start=1):
@@ -77,7 +76,7 @@ def save_speakers(speakers,
 
 
 def load_speakers(path=PROCESSED_DIR / "speakers.parquet"):
-    """Load the cached piles if they exist, else build them (Rule A)."""
+    """Load the cached piles if they exist, else rebuild from raw."""
     if path.exists():
         return pd.read_parquet(path)
     speakers = build_speakers(load_events())
@@ -86,7 +85,7 @@ def load_speakers(path=PROCESSED_DIR / "speakers.parquet"):
 
 
 def check_events(raw, profiles, groups=None):
-    """Quick data checks. Returns a small DataFrame for display."""
+    """Quick data checks, shown as a small table."""
     eng = raw["english_item"].fillna("")
     emo_flat = raw[EMO_COLS].to_numpy().ravel()
     emo_labels = sorted(set(str(v) for v in emo_flat))

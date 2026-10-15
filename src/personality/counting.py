@@ -1,12 +1,11 @@
-"""Word counting (Tasks 1 and 4). The frozen word rules.
+"""Word counting (Tasks 1 and 4).
 
-The lists live in assets/word_rules.csv, not in code. Provenance:
-derived from the LIWC "assent" and "negate" categories (Pennebaker et
-al.) — the standard in personality-from-language research, but licensed,
-so this is our free, documented approximation. Polysemy traps ("right",
-"true", "fine", "way") are deliberately excluded.
+The word lists live in assets/word_rules.csv (11 yes-words, 27 no-words).
+They follow the LIWC "assent" and "negate" lists (Pennebaker et al.),
+trimmed to clear words only — "right", "true", "fine" are too ambiguous
+to count.
 
-Tokenization and lemmatization live in text.py (shared by all tasks).
+Tokenizing and lemmatizing live in text.py (shared by all tasks).
 """
 import csv
 from pathlib import Path
@@ -19,7 +18,7 @@ _ASSETS_DIR = Path(__file__).parent / "assets"
 
 
 def _load_words(wanted):
-    """One frozen word list from assets/word_rules.csv."""
+    """Read one word list from assets/word_rules.csv."""
     with open(_ASSETS_DIR / "word_rules.csv", encoding="utf-8") as words:
         return frozenset(
             row["word"] for row in csv.DictReader(words) if row["list"] == wanted
@@ -31,27 +30,25 @@ NO_WORDS = _load_words("NO")
 
 
 def vocabulary(tokens):
-    """The set of different words (lemmatized)."""
+    """All different words."""
     return set(tokens)
 
 
 def count_yes(tokens):
-    """Confirmation-like tokens."""
+    """How many yes-words."""
     return sum(1 for t in tokens if t in YES_WORDS)
 
 
 def count_no(tokens):
-    """Negation-like tokens."""
+    """How many no-words."""
     return sum(1 for t in tokens if t in NO_WORDS)
 
 
 def speaker_stats(texts):
-    """The Task-1 numbers for one pile of texts (one speaker).
+    """All Task-1 counts for one speaker's pile of texts.
 
-    "Repetitions" = word re-uses inside the same text (one text = one post):
-    a text with 30 tokens and 25 different ones repeats 5.
-
-    Returns the vocabulary set too — the summary table uses only its size.
+    A "repetition" = a word used again inside the same text:
+    30 words with 25 different ones = 5 repetitions.
     """
     tokens = []
     repetitions = yes = no = 0
@@ -72,21 +69,21 @@ def speaker_stats(texts):
 
 
 def chunked_series(texts, chunks=10):
-    """Cumulative counting evolution across one pile of texts.
+    """Counts as they grow through one pile, in reading order.
 
-    The pile is split, in reading order, into `chunks` steps rounded to text
-    boundaries. Returns a DataFrame with cumulative tokens, repetitions,
-    yes_words and no_words at each step.
+    The pile is split into `chunks` steps (rounded to text limits).
+    Returns a DataFrame: cumulative tokens, repetitions, yes_words,
+    no_words at each step.
     """
     per_text = []
     for text in texts:
         tokens = tokenize(text)
         per_text.append((len(tokens), len(tokens) - len(set(tokens)),
                          count_yes(tokens), count_no(tokens)))
-    rows = []
     counts = pd.DataFrame(per_text, columns=["tokens", "repetitions",
                                              "yes_words", "no_words"])
     step = (len(counts) - 1) / chunks if len(counts) > 1 else 0
+    rows = []
     for i in range(1, chunks + 1):
         end = round(i * step) + 1
         upto = counts.iloc[:end]
