@@ -53,6 +53,38 @@ def load_events(path=PROCESSED_DIR / "events.parquet"):
     return events
 
 
+def build_speakers(events):
+    """Rule A piles (planning 03 §4): a speaker's texts = the events where
+    they reported a non-neutral emotion. Long format, one row per
+    (annotator, event), each row carrying the event text.
+    """
+    parts = []
+    for n, emo_col in enumerate(EMO_COLS, start=1):
+        mask = events[emo_col].notna() & (events[emo_col] != "neutral")
+        part = events.loc[mask, ["id", "english_item"]].copy()
+        part.insert(0, "annotator", f"E{n}")
+        part["emotion"] = events.loc[mask, emo_col].values
+        part["confidence"] = events.loc[mask, CONF_COLS[n - 1]].values
+        parts.append(part)
+    return pd.concat(parts, ignore_index=True)
+
+
+def save_speakers(speakers,
+                  path=PROCESSED_DIR / "speakers.parquet"):
+    """Cache the speaker piles for the next run."""
+    PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
+    speakers.to_parquet(path)
+
+
+def load_speakers(path=PROCESSED_DIR / "speakers.parquet"):
+    """Load the cached piles if they exist, else build them (Rule A)."""
+    if path.exists():
+        return pd.read_parquet(path)
+    speakers = build_speakers(load_events())
+    save_speakers(speakers, path)
+    return speakers
+
+
 def check_events(raw, profiles, groups=None):
     """Quick data checks. Returns a small DataFrame for display."""
     eng = raw["english_item"].fillna("")
