@@ -125,6 +125,25 @@ def _(SPEAKERS, plt, topics):
 
 
 @app.cell
+def _(mo):
+    mo.md("""
+    **What the grid says:** each person's "right number of topics" is
+    different — but the answer is not stable.
+
+    - Blue (coherence) is peaky: small values (0.30–0.34) with a visible
+      peak per person, anywhere from k=3 to the edge of the range.
+    - Gray (perplexity) falls steadily for almost everyone — from the
+      model's own view, *fewer* topics always fit better. So the two
+      criteria pull in opposite directions and "optimal k" depends on
+      which one you trust.
+    - Several peaks land on the last tested value (k=20): a boundary peak
+      may mean "more topics would fit" — we could extend the range, at a
+      compute cost. Noted honestly rather than hidden.
+    """)
+    return
+
+
+@app.cell
 def _(PROFILES, T2_SWEEPS, pd, topics):
     T2_BEST = pd.DataFrame(
         {"best_k": {name2: topics.best_k(r) for name2, r in T2_SWEEPS.items()},
@@ -142,6 +161,18 @@ def _(PROFILES, T2_SWEEPS, pd, topics):
     T2_CORR.round(3).to_csv("outputs/tables/task2_trait_correlations.csv")
     T2_BEST
     return (T2_CORR,)
+
+
+@app.cell
+def _(mo):
+    mo.md("""
+    **What the best-k table says:** most speakers settle at many topics —
+    13 of 36 at k=16, 9 at the boundary k=20 — while a small group prefers
+    few (2 at k=3, 4 at k=5, 2 at k=8). The spread itself (3–20) is the
+    interesting part: people's piles genuinely differ in how many themes
+    run through them.
+    """)
+    return
 
 
 @app.cell
@@ -165,34 +196,30 @@ def _(T2_CORR):
 @app.cell
 def _(mo):
     mo.md("""
-    ## Comment (Task 2)
+    **What the tie table says:** best-k climbs slightly with agreeableness
+    (+0.24) and conscientiousness (+0.20) and sinks a little with
+    neuroticism (−0.19); coherence itself ties to no trait at all. All
+    weak (n = 36) — the same magnitude story as Task 1.
+    """)
+    return
 
-    **(a) Vocabulary growth — a blunt tool.** All 36 curves share the same
-    shape: fast new-word discovery in the first ~20% of the pile, then
-    saturation (7.5k–9.7k lemmas at the end, tightly banded). Shapes barely
-    differ between speakers — expected: everyone reacts to texts drawn
-    from the same event pool, so their vocabulary *sources* overlap.
-    Verdict: vocab growth alone discriminates personalities poorly.
 
-    **(b) LDA — the two criteria disagree.** Coherence (c_v) rises with k
-    on average (0.31 at k=3 → 0.32 at k=20) while perplexity worsens
-    (−6.69 → −7.06): more piles look better to coherence, worse to
-    perplexity. "Optimal topics" is therefore criterion-dependent, and we
-    pick per speaker by coherence.
+@app.cell
+def _(mo):
+    mo.md("""
+    ## Task 2 verdict
 
-    **Best topic counts differ between people**
-    (2×k=3, 4×k=5, 2×k=8, 6×k=12, 13×k=16, 9×k=20).
+    **(a)** Vocabulary growth cannot separate people: every curve bends
+    the same way (fast discovery, early saturation) because everyone reads
+    from the same event pool. **(b)** Optimal topic counts DO differ
+    between speakers (k = 3–20), but the ranking is criterion-dependent
+    (coherence favors many topics, perplexity favors few) and boundary
+    peaks suggest the range is too small. Trait links stay weak — mildly
+    agreeable/conscientious speakers "hold more topics".
 
-    **Trait link — weak, same story as Task 1** (Spearman, n = 36):
-    best_k: agreeableness +0.24, conscientiousness +0.20, extraversion
-    +0.13, openness +0.08, neuroticism −0.19. Coherence itself: ≈ 0 with
-    every trait.
-
-    **Honest caveats.** (1) c_v coherence is noisy at 2-pass LDA on
-    ~2,500 short texts — the k-ordering can shuffle with more passes.
-    (2) The texts are the events' words again, not the speaker's own:
-    LDA describes what they *reacted to*, not how they *talk about it*.
-    (3) n = 36: weak links, directions only.
+    Verdict: weak and unstable signals, consistent with Task 1. Honest
+    caveats: c_v coherence is noisy at 2 passes on ~2,500 short texts;
+    the texts are the events', not the speakers' own; n = 36.
     """)
     return
 
