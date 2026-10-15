@@ -17,7 +17,6 @@ def _(mo):
     # 01 — Speaker stats (Task 1)
 
     Rule A piles (non-neutral reactions). Text column: `english_item`.
-    Owner: A.
     """)
     return
 
