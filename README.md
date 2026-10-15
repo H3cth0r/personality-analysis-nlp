@@ -6,7 +6,6 @@ feel. Every person has Big Five scores. We count words, find topics, measure
 feeling words, and compare against personality traits.
 
 - Assignment: [`docs/Project_13_Personality_Analysis.md`](docs/Project_13_Personality_Analysis.md)
-- Full planning: separate repo (`p-a-nlp-planning`)
 
 ## Team
 
