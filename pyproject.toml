@@ -13,6 +13,7 @@ dependencies = [
     "scikit-learn",  # cosine similarity (Task 5)
     "transformers",  # DistilBERT (Task 5)
     "torch",
+    "nbformat>=5.11.1",
 ]
 
 [build-system]

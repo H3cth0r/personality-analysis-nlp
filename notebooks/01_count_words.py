@@ -59,20 +59,20 @@ def _(mo):
 
 @app.cell
 def _(PROFILES, SPEAKERS, counting, pd):
-    ROWS = {
+    T1_ROWS = {
         name: counting.speaker_stats(pile["english_item"])
         for name, pile in SPEAKERS.groupby("annotator")
     }
-    STATS = pd.DataFrame(ROWS).T.drop(columns="vocabulary_set").astype(int)
-    TRAIT_COLS = ["Open.", "Cons.", "Extra.", "Agree.", "Neuro."]
-    TRAIT_NAMES = ["openness", "conscientiousness", "extraversion",
+    T1_STATS = pd.DataFrame(T1_ROWS).T.drop(columns="vocabulary_set").astype(int)
+    T1_TRAIT_COLS = ["Open.", "Cons.", "Extra.", "Agree.", "Neuro."]
+    T1_TRAIT_NAMES = ["openness", "conscientiousness", "extraversion",
                    "agreeableness", "neuroticism"]
-    TRAITS = (PROFILES.set_index("ID")[TRAIT_COLS]
-              .rename(columns=dict(zip(TRAIT_COLS, TRAIT_NAMES))))
-    JOINED = STATS.join(TRAITS)
-    STATS.to_csv("outputs/tables/task1_speaker_stats.csv")
-    JOINED
-    return JOINED, TRAIT_NAMES
+    T1_TRAITS = (PROFILES.set_index("ID")[T1_TRAIT_COLS]
+              .rename(columns=dict(zip(T1_TRAIT_COLS, T1_TRAIT_NAMES))))
+    T1_JOINED = T1_STATS.join(T1_TRAITS)
+    T1_STATS.to_csv("outputs/tables/task1_speaker_stats.csv")
+    T1_JOINED
+    return T1_JOINED, T1_TRAIT_NAMES
 
 
 @app.cell
@@ -115,8 +115,8 @@ def _(mo):
 def _(SPEAKERS, counting, plt):
     from matplotlib.ticker import MaxNLocator
 
-    FIG, AXES = plt.subplots(6, 6, figsize=(17, 14), sharex=False)
-    for ax, (name, pile) in zip(AXES.flat, SPEAKERS.groupby("annotator")):
+    T1_FIG, T1_AXES = plt.subplots(6, 6, figsize=(17, 14), sharex=False)
+    for ax, (name, pile) in zip(T1_AXES.flat, SPEAKERS.groupby("annotator")):
         series = counting.chunked_series(pile["english_item"], chunks=10)
         ax.plot(series["tokens"], series["repetitions"], label="repetitions")
         ax.plot(series["tokens"], series["no_words"], label="negations")
@@ -125,14 +125,14 @@ def _(SPEAKERS, counting, plt):
         ax.tick_params(labelsize=7)
         ax.xaxis.set_major_locator(MaxNLocator(4))
         ax.yaxis.set_major_locator(MaxNLocator(5))
-    for ax in AXES.flat:
+    for ax in T1_AXES.flat:
         ax.set_xlabel("")
         ax.set_ylabel("")
-    AXES[0, 0].legend(fontsize=8)
-    FIG.supxlabel("tokens so far")
-    FIG.tight_layout()
-    FIG.savefig("outputs/figures/task1_evolution.png", dpi=150)
-    FIG
+    T1_AXES[0, 0].legend(fontsize=8)
+    T1_FIG.supxlabel("tokens so far")
+    T1_FIG.tight_layout()
+    T1_FIG.savefig("outputs/figures/task1_evolution.png", dpi=150)
+    T1_FIG
     return
 
 
@@ -171,14 +171,14 @@ def _(mo):
 
 
 @app.cell
-def _(JOINED, TRAIT_NAMES):
-    CORR = (JOINED[["tokens", "vocabulary_size", "repetitions", "yes_words",
-                    "no_words"] + TRAIT_NAMES]
+def _(T1_JOINED, T1_TRAIT_NAMES):
+    T1_CORR = (T1_JOINED[["tokens", "vocabulary_size", "repetitions", "yes_words",
+                    "no_words"] + T1_TRAIT_NAMES]
             .corr(method="spearman")
-            .loc[TRAIT_NAMES, ["tokens", "vocabulary_size", "repetitions",
+            .loc[T1_TRAIT_NAMES, ["tokens", "vocabulary_size", "repetitions",
                                "yes_words", "no_words"]])
-    CORR.round(3).to_csv("outputs/tables/task1_trait_correlations.csv")
-    CORR.round(2)
+    T1_CORR.round(3).to_csv("outputs/tables/task1_trait_correlations.csv")
+    T1_CORR.round(2)
     return
 
 
