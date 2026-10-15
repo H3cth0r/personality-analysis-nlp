@@ -7,19 +7,18 @@ app = marimo.App(width="medium")
 @app.cell
 def _():
     import marimo as mo
+
     return (mo,)
 
 
 @app.cell
 def _(mo):
-    mo.md(
-        """
-        # 01 — Speaker stats (Task 1)
+    mo.md("""
+    # 01 — Speaker stats (Task 1)
 
-        Rule A piles (non-neutral reactions). Text column: `english_item`.
-        Owner: A.
-        """
-    )
+    Rule A piles (non-neutral reactions). Text column: `english_item`.
+    Owner: A.
+    """)
     return
 
 
@@ -32,12 +31,14 @@ def _():
 
     SPEAKERS = data.load_speakers()
     PROFILES = data.load_profiles()
-    return SPEAKERS, PROFILES, counting, data, pd, plt
+    return PROFILES, SPEAKERS, counting, pd, plt
 
 
 @app.cell
 def _(mo):
-    mo.md("## The five counts, per speaker")
+    mo.md("""
+    ## The five counts, per speaker
+    """)
     return
 
 
@@ -56,7 +57,7 @@ def _(PROFILES, SPEAKERS, counting, pd):
     JOINED = STATS.join(TRAITS)
     STATS.to_csv("outputs/tables/task1_speaker_stats.csv")
     JOINED
-    return JOINED, STATS, TRAIT_NAMES, TRAITS
+    return JOINED, TRAIT_NAMES
 
 
 @app.cell
@@ -70,14 +71,12 @@ def _(mo):
 
 @app.cell
 def _(mo):
-    mo.md(
-        """
-        ## Evolution: repetitions, yes-words, no-words vs tokens
+    mo.md("""
+    ## Evolution: repetitions, yes-words, no-words vs tokens
 
-        One panel per speaker. Cumulative counts at 10 chunk boundaries
-        (reading order, text-granular).
-        """
-    )
+    One panel per speaker. Cumulative counts at 10 chunk boundaries
+    (reading order, text-granular).
+    """)
     return
 
 
@@ -102,7 +101,8 @@ def _(SPEAKERS, counting, plt):
     FIG.supxlabel("tokens so far")
     FIG.tight_layout()
     FIG.savefig("outputs/figures/task1_evolution.png", dpi=150)
-    return (FIG,)
+    FIG
+    return
 
 
 @app.cell
@@ -116,12 +116,14 @@ def _(mo):
 
 @app.cell
 def _(mo):
-    mo.md("## Personality (annotator BFI, 0–1)")
+    mo.md("""
+    ## Personality (annotator BFI, 0–1)
+    """)
     return
 
 
 @app.cell
-def _(JOINED, TRAIT_NAMES, pd):
+def _(JOINED, TRAIT_NAMES):
     CORR = (JOINED[["tokens", "vocabulary_size", "repetitions", "yes_words",
                     "no_words"] + TRAIT_NAMES]
             .corr(method="spearman")
@@ -129,33 +131,31 @@ def _(JOINED, TRAIT_NAMES, pd):
                                "yes_words", "no_words"]])
     CORR.round(3).to_csv("outputs/tables/task1_trait_correlations.csv")
     CORR.round(2)
-    return (CORR,)
+    return
 
 
 @app.cell
 def _(mo):
-    mo.md(
-        """
-        ## Comment (Task 1)
+    mo.md("""
+    ## Comment (Task 1)
 
-        - Piles: 1,863–3,018 texts, 104k–167k tokens per speaker. Enough text
-          for all counts.
-        - Vocab size differs little between speakers (7.5k–9.7k lemmas,
-          mean 8,707): everyone reads similar-sized piles of similar content.
-        - Counts are high but similar across speakers too (mean 45.7k
-          repetitions, 1,928 negations, 199 confirmations per pile).
-        - Negations outnumber confirmations ~10:1 in every pile.
-        - Correlations are weak (n = 36, max |r| = 0.22, Spearman):
-          neuroticism + on all five counts; extraversion and agreeableness −;
-          openness and conscientiousness ≈ 0.
-        - **Main confound:** Rule A makes pile size trait-dependent —
-          reactive (higher-N) people qualify more events. Count-level
-          differences therefore partly measure engagement volume, not word
-          style. Compare with care.
-        - Similarity: speakers vary more in *how much* they engage than in
-          *how* they word things — vocabulary sizes cluster tightly.
-        """
-    )
+    - Piles: 1,863–3,018 texts, 104k–167k tokens per speaker. Enough text
+      for all counts.
+    - Vocab size differs little between speakers (7.5k–9.7k lemmas,
+      mean 8,707): everyone reads similar-sized piles of similar content.
+    - Counts are high but similar across speakers too (mean 45.7k
+      repetitions, 1,928 negations, 199 confirmations per pile).
+    - Negations outnumber confirmations ~10:1 in every pile.
+    - Correlations are weak (n = 36, max |r| = 0.22, Spearman):
+      neuroticism + on all five counts; extraversion and agreeableness −;
+      openness and conscientiousness ≈ 0.
+    - **Main confound:** Rule A makes pile size trait-dependent —
+      reactive (higher-N) people qualify more events. Count-level
+      differences therefore partly measure engagement volume, not word
+      style. Compare with care.
+    - Similarity: speakers vary more in *how much* they engage than in
+      *how* they word things — vocabulary sizes cluster tightly.
+    """)
     return
 
 
