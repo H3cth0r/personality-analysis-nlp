@@ -1,0 +1,4 @@
+metric,value
+evaluated_annotators,36.0
+accuracy,0.08333333333333333
+macro_f1,0.03076923076923077
