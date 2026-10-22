@@ -1,0 +1,6 @@
+trait,total_terms,covered_terms,coverage_percent
+agreeableness,4,4,100.0
+conscientiousness,4,4,100.0
+extraversion,4,4,100.0
+neuroticism,4,4,100.0
+openness,4,4,100.0
