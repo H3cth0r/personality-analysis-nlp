@@ -121,6 +121,10 @@ def _(mo):
     fixed training seed. Document-vector inference may still vary unless
     its randomness is controlled separately.
 
+    The scores cache under `data/interim/task5_speaker_scores.parquet` -
+    train + inference run once, later runs load. Rebuilding the cache
+    moves the Spearman values ~0.02 in either direction.
+
     This is an exploratory baseline. Doc2Vec similarity to short
     definition terms does not necessarily capture the intended
     personality meaning.
@@ -129,36 +133,84 @@ def _(mo):
 
 
 @app.cell
-def _(T5_VALID_SPEAKERS, embeddings):
-    T5_DEFINITION_TERMS = [
-        term
-        for terms in embeddings.TRAIT_TERMS.values()
-        for term in terms
-    ]
+def _(T5_VALID_SPEAKERS, embeddings, pd):
+    from pathlib import Path
 
-    T5_TRAIN_TEXTS = (
-        T5_VALID_SPEAKERS["english_item"].tolist()
-        + T5_DEFINITION_TERMS
-    )
+    T5_SCORES_CACHE = Path("data/interim/task5_speaker_scores.parquet")
+    T5_COVERAGE_CACHE = Path("data/interim/task5_term_coverage.parquet")
 
-    T5_MODEL = embeddings.train_doc2vec(
-        T5_TRAIN_TEXTS,
-        vector_size=50,
-        epochs=10,
-        seed=42,
-    )
+    if T5_SCORES_CACHE.exists():
+        T5_SPEAKER_SCORES = pd.read_parquet(T5_SCORES_CACHE)
+        T5_TERM_COVERAGE = pd.read_parquet(T5_COVERAGE_CACHE)
+        T5_TRAINING_SUMMARY = {"loaded": "from data/interim caches"}
+    else:
+        T5_DEFINITION_TERMS = [
+            term
+            for terms in embeddings.TRAIT_TERMS.values()
+            for term in terms
+        ]
 
-    T5_TRAINING_SUMMARY = {
-        "valid speaker text rows": len(T5_VALID_SPEAKERS),
-        "definition terms added": len(T5_DEFINITION_TERMS),
-        "training documents": len(T5_TRAIN_TEXTS),
-        "vocabulary size": len(T5_MODEL.wv),
-        "vector size": T5_MODEL.vector_size,
-        "epochs": T5_MODEL.epochs,
-    }
+        T5_TRAIN_TEXTS = (
+            T5_VALID_SPEAKERS["english_item"].tolist()
+            + T5_DEFINITION_TERMS
+        )
+
+        T5_MODEL = embeddings.train_doc2vec(
+            T5_TRAIN_TEXTS,
+            vector_size=50,
+            epochs=10,
+            seed=42,
+        )
+
+        T5_TRAINING_SUMMARY = {
+            "valid speaker text rows": len(T5_VALID_SPEAKERS),
+            "definition terms added": len(T5_DEFINITION_TERMS),
+            "training documents": len(T5_TRAIN_TEXTS),
+            "vocabulary size": len(T5_MODEL.wv),
+            "vector size": T5_MODEL.vector_size,
+            "epochs": T5_MODEL.epochs,
+        }
+
+        T5_TERM_VECTORS = embeddings.score_traits(
+            T5_MODEL,
+            embeddings.TRAIT_TERMS,
+        )
+
+        T5_SPEAKER_TEXTS = (
+            T5_VALID_SPEAKERS
+            .groupby("annotator", sort=True)["english_item"]
+            .agg(" ".join)
+        )
+
+        T5_SPEAKER_SCORES = embeddings.predict_traits(
+            T5_MODEL,
+            T5_SPEAKER_TEXTS.tolist(),
+            T5_TERM_VECTORS,
+        )
+        T5_SPEAKER_SCORES.index = T5_SPEAKER_TEXTS.index
+
+        T5_COVERAGE_ROWS = []
+        for trait, terms in embeddings.TRAIT_TERMS.items():
+            for term in terms:
+                words = embeddings._tokens(term)
+                known_words = [
+                    word for word in words if word in T5_MODEL.wv
+                ]
+                T5_COVERAGE_ROWS.append({
+                    "trait": trait,
+                    "definition_term": term,
+                    "token_count": len(words),
+                    "known_token_count": len(known_words),
+                    "known_tokens": ", ".join(known_words),
+                    "covered": bool(known_words),
+                })
+        T5_TERM_COVERAGE = pd.DataFrame(T5_COVERAGE_ROWS)
+
+        T5_SPEAKER_SCORES.to_parquet(T5_SCORES_CACHE)
+        T5_TERM_COVERAGE.to_parquet(T5_COVERAGE_CACHE)
 
     T5_TRAINING_SUMMARY
-    return (T5_MODEL,)
+    return T5_SPEAKER_SCORES, T5_TERM_COVERAGE
 
 
 @app.cell
@@ -182,26 +234,7 @@ def _(mo):
 
 
 @app.cell
-def _(T5_ACTUAL, T5_MODEL, T5_VALID_SPEAKERS, embeddings, pd):
-    T5_TRAIT_VECTORS = embeddings.score_traits(
-        T5_MODEL,
-        embeddings.TRAIT_TERMS,
-    )
-
-    T5_SPEAKER_TEXTS = (
-        T5_VALID_SPEAKERS
-        .groupby("annotator", sort=True)["english_item"]
-        .agg(" ".join)
-    )
-
-    T5_SPEAKER_SCORES = embeddings.predict_traits(
-        T5_MODEL,
-        T5_SPEAKER_TEXTS.tolist(),
-        T5_TRAIT_VECTORS,
-    )
-
-    T5_SPEAKER_SCORES.index = T5_SPEAKER_TEXTS.index
-
+def _(T5_ACTUAL, T5_SPEAKER_SCORES, embeddings, pd):
     T5_PREDICTED = embeddings.predict_labels(T5_SPEAKER_SCORES)
 
     T5_RESULTS = pd.DataFrame({
@@ -216,13 +249,7 @@ def _(T5_ACTUAL, T5_MODEL, T5_VALID_SPEAKERS, embeddings, pd):
     T5_RESULTS.index.name = "annotator"
 
     T5_RESULTS
-    return T5_RESULTS, T5_SPEAKER_SCORES
-
-
-@app.cell
-def _():
-    return
-
+    return T5_SPEAKER_SCORES, T5_RESULTS
 
 
 @app.cell
@@ -233,11 +260,11 @@ def _(mo):
     Spearman correlations were calculated between each personality trait's
     similarity scores and the corresponding raw BFI scores for 36 annotators.
 
-    The correlations were weak across all five traits, ranging from
-    approximately -0.168 to 0.194. Neuroticism showed the strongest positive
-    association (ρ = 0.194), while extraversion showed the strongest negative
-    association (ρ = -0.168). Agreeableness showed almost no association
-    (ρ = 0.029).
+    The correlations were weak, ranging from approximately -0.197 to
+    +0.221. Neuroticism showed the strongest positive association
+    (ρ = 0.221), while extraversion showed the strongest negative
+    association (ρ = -0.197). Agreeableness showed almost no association
+    (ρ = -0.035).
 
     Overall, the results suggest limited correspondence between the
     similarity scores and the corresponding BFI measurements. These are
@@ -394,10 +421,11 @@ def _(
 @app.cell
 def _(mo):
     mo.md("""
-    **What this says:** The model achieved 8.33% accuracy, below both
-    the 20% uniform baseline and the 52.78% majority-class baseline.
-    This indicates poor classification performance on the 36 annotators
-    evaluated.
+    **What this says:** accuracy 11.1% (4/36) - below BOTH baselines
+    (uniform 20%, majority 52.78%). Predictions concentrate on
+    neuroticism (33/36 annotators in one column): the model still
+    distinguishes almost nothing, but the balanced pole lists removed
+    the one-trait-takes-all bias.
     """)
     return
     
@@ -456,13 +484,10 @@ def _(T5_MEAN_SIMILARITY, plt):
 @app.cell
 def _(mo):
     mo.md("""
-    **What this says**
-
-    The diagonal shows correct predictions; off-diagonal cells show
-    disagreements between the reference and predicted traits. Concentration
-    in a single predicted column indicates that the model tends to assign
-    the same trait to many annotators rather than distinguish the five traits.
-    Interpret the matrix alongside the accuracy and majority-class baseline.
+    **What this says:** the five bars sit within a few hundredths of each
+    other - the cosine scores crowd together for every trait, which is
+    why the max-race barely distinguishes anything (and why the winner
+    can flip with small changes in the term lists).
     """)
     return
 
@@ -499,6 +524,16 @@ def _(T5_CONFUSION, plt):
 @app.cell
 def _(mo):
     mo.md("""
+    **What this says:** the predicted column = one trait for (almost)
+    every annotator; the diagonal = the correct hits. Compare with the
+    52.78% majority-class baseline - the model distinguishes nothing.
+    """)
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md("""
     ## Definition-term coverage
 
     This table checks whether each personality-definition term has at
@@ -513,27 +548,7 @@ def _(mo):
 
 
 @app.cell
-def _(T5_MODEL, embeddings, pd):
-    T5_COVERAGE_ROWS = []
-
-    for trait, terms in embeddings.TRAIT_TERMS.items():
-        for term in terms:
-            words = embeddings._tokens(term)
-            known_words = [
-                word for word in words if word in T5_MODEL.wv
-            ]
-
-            T5_COVERAGE_ROWS.append({
-                "trait": trait,
-                "definition_term": term,
-                "token_count": len(words),
-                "known_token_count": len(known_words),
-                "known_tokens": ", ".join(known_words),
-                "covered": bool(known_words),
-            })
-
-    T5_TERM_COVERAGE = pd.DataFrame(T5_COVERAGE_ROWS)
-
+def _(T5_TERM_COVERAGE):
     T5_COVERAGE_SUMMARY = (
         T5_TERM_COVERAGE.groupby("trait", as_index=False)
         .agg(
@@ -567,6 +582,7 @@ def _(mo):
 
 @app.cell
 def _(
+    Path,
     T5_CM_FIG,
     T5_CONFUSION,
     T5_COVERAGE_SUMMARY,
@@ -579,8 +595,6 @@ def _(
     T5_SPEARMAN,
     T5_TERM_COVERAGE,
 ):
-    from pathlib import Path
-
     Path("outputs/tables").mkdir(parents=True, exist_ok=True)
     Path("outputs/figures").mkdir(parents=True, exist_ok=True)
 
@@ -637,11 +651,11 @@ def _(mo):
     ### Evaluation results
 
     The model was evaluated on 36 annotators and achieved an accuracy of
-    8.33% and a macro F1 score of approximately 0.042. Accuracy was below
+    11.1% and a macro F1 score of approximately 0.076. Accuracy was below
     both the uniform five-trait baseline of 20% and the majority-class
     baseline of 52.78%.
 
-    Predictions were heavily concentrated in neuroticism: 35 of the 36
+    Predictions were heavily concentrated in neuroticism: 33 of the 36
     annotators were assigned this label. The confusion matrix therefore
     indicates poor discrimination between the five reference labels.
 
@@ -649,10 +663,10 @@ def _(mo):
 
     Spearman correlations were calculated between each trait's similarity
     scores and its corresponding raw BFI score for all 36 annotators.
-    The correlations were weak, ranging from approximately -0.168 to
-    0.194. Neuroticism had the strongest positive association (ρ = 0.194),
-    while extraversion had the strongest negative association (ρ = -0.168).
-    Agreeableness showed almost no association (ρ = 0.029).
+    The correlations were weak, ranging from approximately -0.197 to
+    +0.221. Neuroticism had the strongest positive association (ρ = 0.221),
+    while extraversion had the strongest negative association (ρ = -0.197).
+    Agreeableness showed almost no association (ρ = -0.035).
 
     These are descriptive correlations; statistical significance was not
     tested. They provide little evidence that the similarity scores closely
@@ -660,10 +674,10 @@ def _(mo):
 
     ### Definition-term coverage
 
-    All 21 definition terms had at least one token represented in the
-    Doc2Vec vocabulary. This confirms vocabulary coverage, but does not
-    establish that the learned vectors accurately represent the intended
-    personality meanings.
+    All 20 definition terms (four poles per trait) had at least one token
+    represented in the Doc2Vec vocabulary. This confirms vocabulary
+    coverage, but does not establish that the learned vectors accurately
+    represent the intended personality meanings.
 
     ### Limitations
 

@@ -1,16 +1,4 @@
-"""Doc2Vec embeddings and personality-trait similarity scoring (Task 5).
-
-This module trains a Doc2Vec model on the available text documents,
-creates vectors for personality-definition terms, and scores texts by
-their cosine similarity to those terms.
-
-Each trait's score is the maximum cosine similarity across its available
-definition-term vectors. The highest-scoring trait can then be used as
-the predicted personality label.
-
-The scores are exploratory similarity measures, not probabilities or
-direct measurements of personality.
-"""
+"""Doc2Vec + cosine similarity vs trait definition terms (Task 5)."""
 
 import numpy as np
 import pandas as pd
@@ -18,6 +6,9 @@ from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 from sklearn.metrics.pairwise import cosine_similarity
 
 from personality.text import tokenize
+
+# inference effort shared by term vectors and speaker docs
+INFERENCE_EPOCHS = 50
 
 
 # Personality-definition terms used to build the meaning map.
@@ -36,7 +27,7 @@ TRAIT_TERMS = {
         "good-natured", "cooperative", "mild", "gentle",
     ],
     "neuroticism": [
-        "anxious", "excitable", "hypochondriacal", "nervous", "tense",
+        "anxious", "excitable", "nervous", "tense",
     ],
 }
 
@@ -58,23 +49,7 @@ def _tokens(text):
 
 
 def train_doc2vec(texts, vector_size=50, epochs=10, seed=42):
-    """Train a Doc2Vec model on a collection of text documents.
-
-    Each non-empty text is stored as a tagged document. The model learns
-    document representations from the training corpus.
-
-    Args:
-        texts: Text documents used to train the model.
-        vector_size: Number of dimensions in each vector.
-        epochs: Number of training epochs.
-        seed: Random seed for reproducibility.
-
-    Returns:
-        A trained gensim Doc2Vec model.
-
-    Raises:
-        ValueError: If no non-empty documents are available.
-    """
+    """Doc2Vec on pile texts; seed fixed = reproducible training."""
     documents = []
 
     # Tokenize each text and assign it a unique document tag.
@@ -84,11 +59,6 @@ def train_doc2vec(texts, vector_size=50, epochs=10, seed=42):
             documents.append(
                 TaggedDocument(words=words, tags=[str(index)])
             )
-
-    if not documents:
-        raise ValueError(
-            "No non-empty documents available for Doc2Vec training."
-        )
 
     # Use one worker and a fixed seed to improve reproducibility.
     model = Doc2Vec(
@@ -113,24 +83,7 @@ def train_doc2vec(texts, vector_size=50, epochs=10, seed=42):
 
 
 def score_traits(model, trait_terms=None):
-    """Infer a document vector for each personality-definition term.
-
-    Each definition term is tokenized and represented by a Doc2Vec
-    inferred vector. These vectors are later compared with text vectors
-    using cosine similarity.
-
-    Terms with no tokens are skipped. Traits without usable terms are
-    omitted from the returned dictionary.
-
-    Args:
-        model: A trained gensim Doc2Vec model.
-        trait_terms: Mapping from trait names to definition terms.
-            Defaults to TRAIT_TERMS.
-
-    Returns:
-        Dictionary mapping each trait to a list of definition-term
-        document vectors.
-    """
+    """One inferred doc vector per definition term."""
     if trait_terms is None:
         trait_terms = TRAIT_TERMS
 
@@ -147,18 +100,11 @@ def score_traits(model, trait_terms=None):
 
             # Represent the entire definition term as a document vector,
             # rather than averaging the model's word vectors.
-            vector = model.infer_vector(words, epochs=50)
-
-            if np.all(np.isfinite(vector)):
-                term_vectors.append(vector)
+            vector = model.infer_vector(words, epochs=INFERENCE_EPOCHS)
+            term_vectors.append(vector)
 
         if term_vectors:
             trait_vectors[trait] = term_vectors
-
-    if not trait_vectors:
-        raise ValueError(
-            "No personality-definition terms could be embedded."
-        )
 
     return trait_vectors
 
@@ -176,7 +122,7 @@ def predict_traits(model, texts, trait_vectors):
             rows.append({trait: np.nan for trait in trait_vectors})
             continue
 
-        vector = model.infer_vector(tokens, epochs=50)
+        vector = model.infer_vector(tokens, epochs=INFERENCE_EPOCHS)
         row = {}
 
         for trait, term_vectors in trait_vectors.items():
@@ -194,31 +140,5 @@ def predict_traits(model, texts, trait_vectors):
 
 
 def predict_labels(scores):
-    """Assign the highest-scoring trait to each row.
-
-    Rows containing only missing scores remain unclassified.
-
-    Args:
-        scores: DataFrame of text or annotator similarity scores.
-
-    Returns:
-        A Series named 'predicted_trait' containing the highest-scoring
-        trait for each row, or a missing value if no valid score exists.
-    """
-    if scores.empty or scores.shape[1] == 0:
-        return pd.Series(index=scores.index, dtype="object")
-
-    # Prevent infinite values from affecting the selected label.
-    valid_scores = scores.replace(
-        [np.inf, -np.inf], np.nan
-    )
-
-    # Select the trait with the maximum score in each row.
-    predictions = valid_scores.idxmax(axis=1)
-
-    # idxmax cannot meaningfully classify a row with no valid scores.
-    predictions = predictions.where(
-        valid_scores.notna().any(axis=1)
-    )
-
-    return predictions.rename("predicted_trait")
+    """The highest-scoring trait of each row."""
+    return scores.idxmax(axis=1).rename("predicted_trait")

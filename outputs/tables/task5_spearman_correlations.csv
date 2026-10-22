@@ -1,6 +1,6 @@
 trait,bfi_column,n,spearman_rho
-openness,Open.,36,0.12864986085989208
-conscientiousness,Cons.,36,-0.14382383165835336
-extraversion,Extra.,36,-0.1494425924415766
-agreeableness,Agree.,36,0.05345529019841907
-neuroticism,Neuro.,36,0.22401142689416448
+openness,Open.,36,0.10428631005576422
+conscientiousness,Cons.,36,-0.16985646068611984
+extraversion,Extra.,36,-0.19663499005470603
+agreeableness,Agree.,36,-0.034520524754641714
+neuroticism,Neuro.,36,0.22130628602885255

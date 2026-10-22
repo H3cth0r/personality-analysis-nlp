@@ -1,6 +1,6 @@
 metric,value
 evaluated_annotators,36.0
-accuracy,0.08333333333333333
-macro_f1,0.04162162162162163
+accuracy,0.1111111111111111
+macro_f1,0.07619047619047618
 uniform_random_baseline,0.2
 majority_class_baseline,0.5277777777777778
