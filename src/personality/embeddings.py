@@ -1,4 +1,3 @@
-
 """Doc2Vec embeddings and personality-trait similarity scoring (Task 5).
 
 This module trains a Doc2Vec model on the available text documents,
@@ -22,29 +21,22 @@ from personality.text import tokenize
 
 
 # Personality-definition terms used to build the meaning map.
-# Positive and contrasting descriptors are included for each trait.
+# Definition terms used to represent each personality trait.
 TRAIT_TERMS = {
     "openness": [
-        "intellectual", "unreflective", "narrow", "artistic",
-        "nonartistic", "imaginative", "simple", "direct",
-        "refined", "crude", "boorish",
+        "intellectual", "artistic", "imaginative", "refined",
     ],
     "conscientiousness": [
-        "responsible", "undependable", "scrupulous", "unscrupulous",
-        "persevering", "quitting", "fussy", "tidy", "careless",
+        "responsible", "scrupulous", "persevering", "tidy",
     ],
     "extraversion": [
-        "talkative", "silent", "sociable", "reclusive",
-        "adventurous", "cautious", "open", "secretive",
+        "talkative", "sociable", "adventurous", "open",
     ],
     "agreeableness": [
-        "good-natured", "irritable", "cooperative", "negativistic",
-        "mild", "gentle", "headstrong", "not jealous", "jealous",
+        "good-natured", "cooperative", "mild", "gentle",
     ],
     "neuroticism": [
-        "calm", "anxious", "composed", "excitable",
-        "not hypochondriacal", "hypochondriacal",
-        "poised", "nervous", "tense",
+        "anxious", "excitable", "hypochondriacal", "nervous", "tense",
     ],
 }
 
@@ -173,25 +165,7 @@ def score_traits(model, trait_terms=None):
 
 
 def predict_traits(model, texts, trait_vectors):
-    """Calculate personality-trait similarity scores for each text.
-
-    A document vector is inferred for each non-empty text. Its cosine
-    similarity is calculated against every available definition-term
-    vector. Each trait receives its maximum similarity across its terms.
-
-    Empty texts receive missing scores.
-
-    Args:
-        model: A trained Doc2Vec model.
-        texts: Text documents to score.
-        trait_vectors: Definition-term vectors returned by score_traits.
-
-    Returns:
-        A DataFrame containing one similarity-score column per trait
-        and one row per input text.
-    """
-    if not trait_vectors:
-        raise ValueError("trait_vectors is empty; score traits first.")
+    """Calculate trait similarity scores for each speaker."""
 
     rows = []
 
@@ -199,36 +173,24 @@ def predict_traits(model, texts, trait_vectors):
         tokens = _tokens(text)
 
         if not tokens:
-            rows.append({
-                trait: np.nan for trait in trait_vectors
-            })
+            rows.append({trait: np.nan for trait in trait_vectors})
             continue
 
-        # Infer a vector representing this individual text.
-        vector = model.infer_vector(tokens)
+        vector = model.infer_vector(tokens, epochs=50)
         row = {}
 
         for trait, term_vectors in trait_vectors.items():
-            # Compare the text vector with every available term vector.
             similarities = cosine_similarity(
                 vector.reshape(1, -1),
                 np.asarray(term_vectors),
             )[0]
 
-            # Ignore invalid similarities before taking the maximum.
-            valid_similarities = similarities[
-                np.isfinite(similarities)
-            ]
-
-            row[trait] = (
-                float(np.max(valid_similarities))
-                if len(valid_similarities)
-                else np.nan
-            )
+            row[trait] = float(np.max(similarities))
 
         rows.append(row)
 
     return pd.DataFrame(rows, columns=list(trait_vectors.keys()))
+
 
 
 def predict_labels(scores):

@@ -1,6 +1,6 @@
 actual_trait,openness,conscientiousness,extraversion,agreeableness,neuroticism
-openness,3,0,0,0,0
-conscientiousness,19,0,0,0,0
-extraversion,2,0,0,0,0
-agreeableness,10,0,0,0,0
-neuroticism,2,0,0,0,0
+openness,0,0,0,0,3
+conscientiousness,0,1,0,0,18
+extraversion,0,0,0,0,2
+agreeableness,0,0,0,0,10
+neuroticism,0,0,0,0,2

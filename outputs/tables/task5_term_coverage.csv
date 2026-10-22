@@ -1,47 +1,22 @@
 trait,definition_term,token_count,known_token_count,known_tokens,covered
 openness,intellectual,1,1,intellectual,True
-openness,unreflective,1,1,unreflective,True
-openness,narrow,1,1,narrow,True
 openness,artistic,1,1,artistic,True
-openness,nonartistic,1,1,nonartistic,True
 openness,imaginative,1,1,imaginative,True
-openness,simple,1,1,simple,True
-openness,direct,1,1,direct,True
 openness,refined,1,1,refine,True
-openness,crude,1,1,crude,True
-openness,boorish,1,1,boorish,True
 conscientiousness,responsible,1,1,responsible,True
-conscientiousness,undependable,1,1,undependable,True
 conscientiousness,scrupulous,1,1,scrupulous,True
-conscientiousness,unscrupulous,1,1,unscrupulous,True
 conscientiousness,persevering,1,1,persevere,True
-conscientiousness,quitting,1,1,quit,True
-conscientiousness,fussy,1,1,fussy,True
 conscientiousness,tidy,1,1,tidy,True
-conscientiousness,careless,1,1,careless,True
 extraversion,talkative,1,1,talkative,True
-extraversion,silent,1,1,silent,True
 extraversion,sociable,1,1,sociable,True
-extraversion,reclusive,1,1,reclusive,True
 extraversion,adventurous,1,1,adventurous,True
-extraversion,cautious,1,1,cautious,True
 extraversion,open,1,1,open,True
-extraversion,secretive,1,1,secretive,True
 agreeableness,good-natured,2,2,"good, natured",True
-agreeableness,irritable,1,1,irritable,True
 agreeableness,cooperative,1,1,cooperative,True
-agreeableness,negativistic,1,1,negativistic,True
 agreeableness,mild,1,1,mild,True
 agreeableness,gentle,1,1,gentle,True
-agreeableness,headstrong,1,1,headstrong,True
-agreeableness,not jealous,2,2,"not, jealous",True
-agreeableness,jealous,1,1,jealous,True
-neuroticism,calm,1,1,calm,True
 neuroticism,anxious,1,1,anxious,True
-neuroticism,composed,1,1,compose,True
 neuroticism,excitable,1,1,excitable,True
-neuroticism,not hypochondriacal,2,2,"not, hypochondriacal",True
 neuroticism,hypochondriacal,1,1,hypochondriacal,True
-neuroticism,poised,1,1,poise,True
 neuroticism,nervous,1,1,nervous,True
 neuroticism,tense,1,1,tense,True
