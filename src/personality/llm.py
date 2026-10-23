@@ -213,6 +213,53 @@ def persona_prompt_cot(event_text, persona):
     return persona_prompt(event_text, persona) + T7_COT_SUFFIX
 
 
+def run_prompt(prompt, api_key=None, model=MODEL):
+    """One chat completion with the named model; returns the reply text.
+
+    The Task-7 batch runner uses this; the explanation flow above stays
+    untouched.
+    """
+    key = api_key or os.environ.get("OPENROUTER_API_KEY")
+    if not key:
+        raise RuntimeError(
+            "OPENROUTER_API_KEY is not set in this terminal session."
+        )
+
+    payload = {
+        "model": model,
+        "temperature": TEMPERATURE,
+        "max_tokens": MAX_RESPONSE_TOKENS,
+        "reasoning": {"enabled": REASONING_ENABLED},
+        "messages": [{"role": "user", "content": prompt}],
+    }
+    request = urllib.request.Request(
+        OPENROUTER_URL,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Authorization": f"Bearer {key}",
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=120) as response:
+            result = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")
+        raise RuntimeError(
+            f"OpenRouter request failed ({exc.code}): {detail}"
+        ) from exc
+    except urllib.error.URLError as exc:
+        raise RuntimeError(
+            f"Could not connect to OpenRouter: {exc.reason}"
+        ) from exc
+
+    reply = result["choices"][0]["message"]["content"]
+    if not reply:
+        raise RuntimeError(f"OpenRouter returned an empty reply ({model}).")
+    return reply
+
+
 def parse_predictions(reply):
     """The {"predictions": [...]} list from a model reply.
 
