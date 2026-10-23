@@ -1,0 +1,71 @@
+annotator,actual_trait,predicted_trait,score_margin,model,prompt_version,evidence_hash,explanation,status,error,word_count
+E22,conscientiousness,neuroticism,0.0726,nvidia/nemotron-3.5-super-vl:free,task6-evidence-v3,e88b33612b691495e91ca9f97b5daa121be55552bb9ae8b2da5cbef60a22e300,"1. Prediction
+Doc2Vec selected neuroticism as the highest-similarity trait (0.6352), followed by openness (0.5626), agreeableness (0.5596), conscientiousness (0.5472), and extraversion (0.5015). The margin over the second-highest score is 0.0726. These scores are similarity measures, not probabilities.
+
+2. Supporting evidence
+Neuroticism has the highest similarity score. The annotator’s actual profile shows low neuroticism (0.229) but high conscientiousness (0.875) and agreeableness (0.792). VAD measures show moderate valence (0.6036), low arousal (0.4413), and moderate dominance (0.5249). Event texts describe negative, distressing situations.
+
+3. Counterevidence
+The actual dominant trait is conscientiousness, yet its similarity score (0.5472) ranks fourth. The annotator’s profile indicates low neuroticism (0.229). Similarity scores across traits are relatively close, ranging from 0.5015 to 0.6352.
+
+4. Alternative explanations
+The model may have matched linguistic patterns in the event texts rather than the annotator’s personality. The texts are events the annotator reacted to, not texts they authored. Bucket rates for actual and predicted trait groups are nearly identical, offering little discriminative evidence. High arousal or negative valence in events could drive similarity to neuroticism without reflecting the annotator’s traits.
+
+5. Limitations and conclusion
+Doc2Vec internal computations cannot be inspected. The evidence is weak and ambiguous: the top score is only marginally higher than others, and the prediction contradicts the actual dominant trait. The result does not prove the annotator’s personality.",success,,217
+E10,agreeableness,neuroticism,0.0678,nvidia/nemotron-3.5-super-vl:free,task6-evidence-v3,8c06f81040e99e8ce06fd0b13bec7241a06c1730dbee0da975faf7c96ff5c698,"1. Prediction
+Doc2Vec selected neuroticism as the highest-similarity trait (0.5828), exceeding agreeableness (0.5151) by 0.0678. All scores are similarity measures, not probabilities.
+
+2. Supporting evidence
+Neuroticism ranked first among five traits. The annotator’s Big Five profile shows high neuroticism (0.844) and agreeableness (0.854). VAD valence mean is moderately positive (0.6022) with notable variability (std 0.2052), and arousal mean is 0.4415. Example event texts express negative personal experiences.
+
+3. Counterevidence
+The predicted trait (neuroticism) does not match the actual dominant trait (agreeableness). The top-score margin is small (0.0678), and agreeableness is the second-highest similarity. Word-statistics bucket rates for agreeableness and neuroticism are nearly identical (repetitions 326.8691 vs 325.9927 per 1000 tokens), offering little lexical differentiation.
+
+4. Alternative explanations
+The similarity may reflect shared linguistic context between event texts and trait representations rather than the annotator’s personality. High profile scores in both neuroticism and agreeableness could produce overlapping semantic signals. The texts are events annotators reacted to, not texts they authored, so they do not reveal writing style.
+
+5. Limitations and conclusion
+Doc2Vec internals cannot be inspected, and similarity scores are not probabilities or proof of personality. Evidence for neuroticism is weak: the margin is narrow, agreeableness is a close second, and word statistics do not distinguish the traits. The model selected neuroticism based on relative vector proximity, but this does not establish the annotator’s actual personality.",success,,225
+E9,extraversion,neuroticism,0.0353,nvidia/nemotron-3.5-super-vl:free,task6-evidence-v3,9906c8c6bc4487a2b67e742c75edeece46d456956fb3a9288566bbe150986df2,"1. Prediction
+Doc2Vec selected neuroticism as the highest similarity trait (0.5658), narrowly exceeding agreeableness (0.5305) by 0.0353. Extraversion scored lowest (0.3851), contradicting the annotator's actual dominant trait.
+
+2. Supporting evidence
+Neuroticism's top rank indicates the event texts' vector was closest to the neuroticism trait vector. Moderately low valence mean (0.6033) and low arousal mean (0.4412) may align with negative affect. Word statistics show frequent negations (13.7523 per 1000 tokens), potentially signaling uncertainty or distress.
+
+3. Counterevidence
+The annotator's actual profile shows high extraversion (0.667) and low neuroticism (0.438). Extraversion's similarity score is the lowest of all traits. The margin between first and second place is small (0.0353), indicating weak separation. Similarity scores are not probabilities or diagnostic measures.
+
+4. Alternative explanations
+The model may have captured event content themes (e.g., conflict, harm) rather than annotator personality. Texts are events annotators reacted to, not texts they authored, so language style cannot be attributed to them. Bucket rates for actual and predicted trait groups are nearly identical, offering no discriminative lexical support.
+
+5. Limitations and conclusion
+Evidence is weak and ambiguous: a narrow similarity margin, mismatched profile, non-probabilistic scores, and non-authored texts prevent a valid personality inference. The prediction likely reflects semantic content similarity to neuroticism-related language, not the annotator's actual personality. No causal or diagnostic conclusion is supported.",success,,217
+E17,neuroticism,neuroticism,0.0671,nvidia/nemotron-3.5-super-vl:free,task6-evidence-v3,0b8fcc1e63f78ededf33105975f39af692cea79dfbe8cd33bfe58553f202d608,"1. Prediction
+Doc2Vec selected neuroticism as the highest-similarity trait with a score of 0.6275, ranking above openness (0.5604), conscientiousness (0.5557), agreeableness (0.5474), and extraversion (0.5349). The margin over the second-highest score is 0.0671. These are similarity scores, not probabilities.
+
+2. Supporting evidence
+E17’s Big Five profile shows neuroticism at 0.844, far exceeding all other traits; openness is next at 0.625. The predicted trait matches the actual dominant trait. Neuroticism’s similarity score is the maximum across all five traits.
+
+3. Counterevidence
+The similarity margin is small (0.0671), indicating weak separation from openness. Word statistics show no trait-specific differentiation: actual/predicted and all trait-group bucket rates are nearly identical (repetitions ~326–333 per 1000; negations ~13.7–14.2 per 1000). VAD means (valence 0.6039, arousal 0.4411, dominance 0.5247) are moderate and not clearly linked to neuroticism.
+
+4. Alternative explanations
+The top rank may reflect the annotator’s high self-reported neuroticism (0.844) rather than textual evidence. Event texts describe negative, threatening events (being run over, violence), which could drive similarity independently of the annotator’s personality. Since texts are events annotators reacted to, not texts they authored, writing-style inferences are invalid.
+
+5. Limitations and conclusion
+Doc2Vec internals cannot be inspected, and similarity scores are not probabilities. Evidence is weak and ambiguous: the prediction aligns with the profile and actual trait, but lexical and VAD measures offer no discriminating support, and event content may confound results. The result does not prove E17’s personality.",success,,233
+E3,openness,neuroticism,0.0719,nvidia/nemotron-3.5-super-vl:free,task6-evidence-v3,64a803cba39e04ff22e2956060426bd7ebb10a56c07a9f14d4871c308420926f,"1. Prediction
+Doc2Vec selected neuroticism as E3’s dominant trait because its similarity score, 0.6308, ranked highest among all traits. Openness scored 0.5589, agreeableness 0.5534, conscientiousness 0.5391, and extraversion 0.4620. The margin over second place was 0.0719. These are similarity scores, not probabilities.
+
+2. Supporting evidence
+Neuroticism’s 0.6308 similarity exceeded every other trait. E3’s Big Five profile shows neuroticism at 0.635, the second-highest trait value after openness (0.76). VAD arousal mean is 0.4409 with standard deviation 0.1730, and valence mean is 0.6039 with standard deviation 0.2038. The neuroticism bucket’s word rates—325.9927 repetitions, 1.4598 confirmations, and 13.6817 negations per 1000 tokens—closely match E3’s overall statistics (329.5523, 1.4088, 13.8765).
+
+3. Counterevidence
+E3’s actual dominant trait is openness, with a profile score of 0.76, substantially higher than neuroticism’s 0.635. Doc2Vec’s openness similarity (0.5589) ranked second, only 0.0719 below neuroticism—a narrow margin. The openness bucket’s word rates (332.5874 repetitions, 1.4758 confirmations, 14.2135 negations per 1000 tokens) also closely match E3’s overall statistics.
+
+4. Alternative explanations
+The prediction may reflect lexical or semantic overlap between event texts and neuroticism-related content rather than E3’s personality. The texts are events annotators reacted to, not texts they authored, so word statistics may not capture individual writing style. High arousal variability or negative-valence event content could drive similarity independently of trait. The narrow 0.0719 margin suggests the distinction between neuroticism and openness is weak.
+
+5. Limitations and conclusion
+Doc2Vec internals cannot be inspected, and similarity scores are not probabilities or proof of personality. Word statistics and VAD measures are descriptive only, and event-text excerpts do not reveal annotator authorship. Evidence is insufficient to claim E3 is neurotic; the model’s selection is weakly supported by a narrow margin and contradicted by E3’s actual openness profile.",success,,284
