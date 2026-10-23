@@ -8,7 +8,13 @@ import urllib.request
 
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 MODEL = "nvidia/nemotron-3.5-super-vl:free"
+
+# Editing SYSTEM_PROMPT? Bump PROMPT_VERSION because the cache keys on
+# (prompt version, evidence hash); otherwise stale explanations look fresh.
 PROMPT_VERSION = "task6-evidence-v3"
+MAX_RESPONSE_TOKENS = 1000  # Room for five short sections.
+TEMPERATURE = 0.2  # A low value helps keep explanations steadier across reruns.
+REASONING_ENABLED = False  # Reasoning traces add latency, not accuracy here.
 
 
 SYSTEM_PROMPT = """
@@ -55,9 +61,9 @@ def explain_trait(evidence: dict) -> dict:
 
     payload = {
         "model": MODEL,
-        "temperature": 0.2,
-        "max_tokens": 1000,
-        "reasoning": {"enabled": False},
+        "temperature": TEMPERATURE,
+        "max_tokens": MAX_RESPONSE_TOKENS,
+        "reasoning": {"enabled": REASONING_ENABLED},
         "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
             {
