@@ -1,5 +1,6 @@
 """Evidence-grounded LLM explanations for Task 6."""
 
+import http.client
 import json
 import os
 import urllib.error
@@ -176,6 +177,35 @@ Return exactly 2 emotions in descending order of confidence:
 
 T7_COT_SUFFIX = "\n\nLet's think step by step."
 
+T7_POLARITY_PROMPT = """# SYSTEM ROLE
+You are a participant in a psychology experiment. Your task is to read
+an event description and report the most natural immediate emotional
+reaction.
+
+# INPUT EVENT
+\"{event_text}\"
+
+# VALID LABELS
+- Positive candidates: Joy, Surprise.
+- Negative candidates: Sadness, Anger, Fear, Disgust.
+- Neutral candidate: Neutral.
+- Intensity: 1 (Very Weak) to 5 (Very Strong).
+
+# INSTRUCTIONS
+Step 1 - Polarity assessment: Based on the event description, decide
+whether the overall emotion is POSITIVE, NEGATIVE, or NEUTRAL.
+Step 2 - Final selection: From the chosen category, pick the top two
+emotions that best match the event.
+
+# OUTPUT FORMAT
+Return exactly 2 emotions in descending order of confidence:
+{{
+  "predictions": [
+    {{"Emotion": "Joy", "Intensity": 4}},
+    {{"Emotion": "Surprise", "Intensity": 3}}
+  ]
+}}"""
+
 
 def cluster_personas(profiles, groups):
     """One persona description per BFI cluster.
@@ -211,6 +241,11 @@ def persona_prompt(event_text, persona):
 
 def persona_prompt_cot(event_text, persona):
     return persona_prompt(event_text, persona) + T7_COT_SUFFIX
+
+
+def polarity_prompt(event_text):
+    """The persona template minus the persona: isolates polarity-first."""
+    return T7_POLARITY_PROMPT.format(event_text=event_text)
 
 
 def run_prompt(prompt, api_key=None, model=MODEL):
@@ -249,9 +284,9 @@ def run_prompt(prompt, api_key=None, model=MODEL):
         raise RuntimeError(
             f"OpenRouter request failed ({exc.code}): {detail}"
         ) from exc
-    except urllib.error.URLError as exc:
+    except (urllib.error.URLError, http.client.RemoteDisconnected) as exc:
         raise RuntimeError(
-            f"Could not connect to OpenRouter: {exc.reason}"
+            f"Could not connect to OpenRouter: {exc}"
         ) from exc
 
     reply = result["choices"][0]["message"]["content"]
