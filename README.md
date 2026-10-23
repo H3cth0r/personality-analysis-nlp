@@ -40,6 +40,10 @@ uv sync
 `uv sync` reads `pyproject.toml`, installs matching Python, creates `.venv`,
 locks `uv.lock`.
 
+LLM access (tasks 6–7 only): put `OPENROUTER_API_KEY=sk-or-v1-...` in a
+`.env` file next to this README (free account at openrouter.ai). The file
+never enters git; the notebook's first cells load it.
+
 ## Data
 
 Download everything (CC BY-NC-SA — research use only, never commit these
