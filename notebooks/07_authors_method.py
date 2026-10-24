@@ -242,7 +242,7 @@ def _(T7_BASELINES, T7_METRICS, T7_OK, pd):
 
 @app.cell
 def _(T7_BY_DOMAIN, T7_METRICS, T7_BASELINES, plt):
-    from pathlib import Path as _Path
+    from pathlib import Path
 
     T7_ACC_FIG, T7_ACC_AX = plt.subplots(figsize=(9, 5))
     T7_ACC_AX.bar(
@@ -261,8 +261,8 @@ def _(T7_BY_DOMAIN, T7_METRICS, T7_BASELINES, plt):
     T7_ACC_AX.legend()
     T7_ACC_FIG.tight_layout()
 
-    _Path("outputs/tables").mkdir(parents=True, exist_ok=True)
-    _Path("outputs/figures").mkdir(parents=True, exist_ok=True)
+    Path("outputs/tables").mkdir(parents=True, exist_ok=True)
+    Path("outputs/figures").mkdir(parents=True, exist_ok=True)
     T7_METRICS.to_csv("outputs/tables/task7_metrics.csv", index=False)
     T7_BASELINES.to_csv("outputs/tables/task7_baselines.csv", index=False)
     T7_BY_DOMAIN.to_csv("outputs/tables/task7_by_domain.csv", index=False)
