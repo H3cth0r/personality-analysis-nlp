@@ -14,7 +14,7 @@ def _():
 @app.cell
 def _(mo):
     mo.md("""
-    # 02 — Topic change (Task 2)
+    # 02 - Topic change (Task 2)
 
     Hypothesis: people who change topics introduce new words fast and
     have more topic piles.
@@ -39,14 +39,14 @@ def _(mo):
     mo.md("""
     ## (a) Vocabulary growth vs tokens
 
-    "How many new words by now?" — each curve = one speaker, measured at 10
-    checkpoints of their pile.
+    "How many new words by now?" Each curve = one speaker, measured at
+    10 checkpoints of their pile.
 
     - **Left panel:** raw counts. Every speaker climbs from 0 to their
       vocabulary size; curves differ mainly in length (pile size).
-    - **Right panel:** same curves, but x = *fraction* of the pile read.
-      Now shape is what differs: a curve that keeps rising at the end =
-      keeps finding new words late = the topic-changer pattern.
+    - **Right panel:** same curve, x = fraction of their pile. A curve
+      still rising at the end = new words keep coming = the
+      topic-changer pattern.
     """)
     return
 
@@ -74,10 +74,8 @@ def _(SPEAKERS, counting, plt):
 @app.cell
 def _(mo):
     mo.md("""
-    Read: in both panels the curves bend flat early — most new words are
-    discovered in the first ~20% of the pile, then the discovery rate
-    falls. The shapes are similar across speakers; how fast each curve
-    flattens is the (weak) difference. Vocabulary growth alone is a blunt
+    Curves bend flat early: ~20% in, most new words are found. The
+    shapes match across speakers. Vocabulary growth alone = a blunt
     tool for separating personalities.
     """)
     return
@@ -91,12 +89,12 @@ def _(mo):
     For every speaker we train one LDA per candidate topic count
     (k = 3, 5, 8, 12, 16, 20) and score it twice:
 
-    - **coherence (c_v)**, blue, left axis — "do the piles make sense
+    - **coherence (c_v)**, blue, left axis: "do the piles make sense
       together?" Higher = better.
-    - **perplexity**, gray dashed, right axis — how sure the model is;
+    - **perplexity**, gray dashed, right axis: how sure the model is;
       higher (closer to 0) = better.
 
-    Where coherence peaks = that speaker's best topic count. One panel per
+    Coherence's peak = that speaker's best topic count. One panel per
     speaker; results cached in `data/interim/lda/`.
     """)
     return
@@ -128,17 +126,13 @@ def _(SPEAKERS, plt, topics):
 def _(mo):
     mo.md("""
     **What the grid says:** each person's "right number of topics" is
-    different — but the answer is not stable.
+    different, but the answer is not stable.
 
-    - Blue (coherence) is peaky: small values (0.30–0.34) with a visible
-      peak per person, anywhere from k=3 to the edge of the range.
-    - Gray (perplexity) falls steadily for almost everyone — from the
-      model's own view, *fewer* topics always fit better. So the two
-      criteria pull in opposite directions and "optimal k" depends on
-      which one you trust.
-    - Several peaks land on the last tested value (k=20): a boundary peak
-      may mean "more topics would fit" — we could extend the range, at a
-      compute cost. Noted honestly rather than hidden.
+    - Blue (coherence) is peaky: small values (0.30-0.34) with a
+      visible peak per person, anywhere from k=3 to the range edge.
+    - Gray (perplexity) falls steadily for almost everyone: from the
+      model's own view, *fewer* topics always fit better. The criteria
+      disagree, so the "optimal k" = whichever one you trust.
     """)
     return
 
@@ -166,11 +160,10 @@ def _(PROFILES, T2_SWEEPS, pd, topics):
 @app.cell
 def _(mo):
     mo.md("""
-    **What the best-k table says:** most speakers settle at many topics —
-    13 of 36 at k=16, 9 at the boundary k=20 — while a small group prefers
-    few (2 at k=3, 4 at k=5, 2 at k=8). The spread itself (3–20) is the
-    interesting part: people's piles genuinely differ in how many themes
-    run through them.
+    **What the best-k table says:** most speakers settle at many
+    topics: 13 of 36 at k=16, 9 at the boundary k=20, a few at k=3-8.
+    The spread itself (3-20) is the finding: people's piles genuinely
+    differ in how many themes run through them.
     """)
     return
 
@@ -199,7 +192,7 @@ def _(mo):
     **What the tie table says:** best-k climbs slightly with agreeableness
     (+0.24) and conscientiousness (+0.20) and sinks a little with
     neuroticism (−0.19); coherence itself ties to no trait at all. All
-    weak (n = 36) — the same magnitude story as Task 1.
+    weak (n = 36), the same magnitude story as Task 1.
     """)
     return
 
@@ -210,16 +203,15 @@ def _(mo):
     ## Task 2 verdict
 
     **(a)** Vocabulary growth cannot separate people: every curve bends
-    the same way (fast discovery, early saturation) because everyone reads
-    from the same event pool. **(b)** Optimal topic counts DO differ
-    between speakers (k = 3–20), but the ranking is criterion-dependent
-    (coherence favors many topics, perplexity favors few) and boundary
-    peaks suggest the range is too small. Trait links stay weak — mildly
-    agreeable/conscientious speakers "hold more topics".
+    the same way, because everyone reads from the same event pool.
+    **(b)** Optimal topic counts do differ between speakers (k = 3-20),
+    but the ranking depends on the criterion: coherence favors many
+    topics, perplexity favors few, and boundary peaks suggest the range
+    is too small. Trait links stay weak (mildly agreeable and
+    conscientious speakers "hold more topics"). Same story as Task 1.
 
-    Verdict: weak and unstable signals, consistent with Task 1. Honest
-    caveats: c_v coherence is noisy at 2 passes on ~2,500 short texts;
-    the texts are the events', not the speakers' own; n = 36.
+    Weak spots: c_v coherence is noisy at 2 passes on ~2,500 short
+    texts; the texts are the events', not the speakers'; n = 36.
     """)
     return
 
