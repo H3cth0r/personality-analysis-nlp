@@ -16,17 +16,14 @@ def _(mo):
     mo.md("""
     # 05 - Personality meaning map (Task 5)
 
-    This task explores whether event-related texts are more similar to
-    definition terms associated with the five Big Five personality traits.
+    Each text = a point on a map of meanings; close points = similar
+    texts. That map = the meaning map. Doc2Vec draws the points;
+    cosine similarity = the twin-score (1 = twins, 0 = strangers).
 
-    A Doc2Vec model represents text and definition terms as numerical
-    vectors. Cosine similarity is used to score each trait, taking the
-    maximum similarity across that trait's definition terms.
-
-    Each annotator's valid texts are combined into one document, producing
-    one set of trait similarity scores and one predicted trait per
-    annotator. These scores are similarities, not probabilities or
-    validated measurements of personality.
+    One document per annotator (all their texts glued); its 4 pole-terms
+    per trait = the landmarks; the trait score = the biggest
+    twin-score; the highest trait = the prediction. Similarities are
+    not probabilities.
     """)
     return
 
@@ -79,6 +76,7 @@ def _(T5_PROFILES, T5_SPEAKERS, buckets, pd):
         subset=["annotator", "english_item"]
     ).copy()
 
+    # force plain strings (some cells arrive as gaps); trim stray spaces
     T5_VALID_SPEAKERS["annotator"] = (
         T5_VALID_SPEAKERS["annotator"].astype(str).str.strip()
     )
@@ -86,11 +84,13 @@ def _(T5_PROFILES, T5_SPEAKERS, buckets, pd):
         T5_VALID_SPEAKERS["english_item"].astype(str).str.strip()
     )
 
+    # drop rows with an empty annotator or empty text; renumber after
     T5_VALID_SPEAKERS = T5_VALID_SPEAKERS[
         (T5_VALID_SPEAKERS["annotator"] != "")
         & (T5_VALID_SPEAKERS["english_item"] != "")
     ].reset_index(drop=True)
 
+    # show the row count at each step: the cut's cost
     T5_DATA_SUMMARY = pd.DataFrame({
         "measure": [
             "All speaker rows",
@@ -111,23 +111,17 @@ def _(T5_PROFILES, T5_SPEAKERS, buckets, pd):
 @app.cell
 def _(mo):
     mo.md("""
-    ## Training the Doc2Vec model
+    ## Training + scoring (cached)
 
-    The model is trained on the valid speaker texts, with the personality
-    definition terms added to the training corpus so their words can be
-    represented in the embedding space.
+    The model = trained on the pile texts + the pole terms (so the model
+    knows those words). The heavy part (train + per-speaker guesses)
+    runs once; later runs load:
+    `data/interim/task5_speaker_scores.parquet`. Rebuilding the cache
+    moves the Spearman values ~0.02. The numbers = the cache's, and
+    the cache = the record.
 
-    The model uses 50-dimensional vectors, 10 training epochs, and a
-    fixed training seed. Document-vector inference may still vary unless
-    its randomness is controlled separately.
-
-    The scores cache under `data/interim/task5_speaker_scores.parquet` -
-    train + inference run once, later runs load. Rebuilding the cache
-    moves the Spearman values ~0.02 in either direction.
-
-    This is an exploratory baseline. Doc2Vec similarity to short
-    definition terms does not necessarily capture the intended
-    personality meaning.
+    An honest baseline warning: a 50-dim Doc2Vec vs short term-words =
+    a weak probe. The next blocks say what it actually found.
     """)
     return
 
@@ -139,6 +133,7 @@ def _(T5_VALID_SPEAKERS, embeddings, pd):
     T5_SCORES_CACHE = Path("data/interim/task5_speaker_scores.parquet")
     T5_COVERAGE_CACHE = Path("data/interim/task5_term_coverage.parquet")
 
+    # same numbers every run: load the saved scores, or train once and save
     if T5_SCORES_CACHE.exists():
         T5_SPEAKER_SCORES = pd.read_parquet(T5_SCORES_CACHE)
         T5_TERM_COVERAGE = pd.read_parquet(T5_COVERAGE_CACHE)
@@ -190,15 +185,15 @@ def _(T5_VALID_SPEAKERS, embeddings, pd):
         T5_SPEAKER_SCORES.index = T5_SPEAKER_TEXTS.index
 
         T5_COVERAGE_ROWS = []
-        for trait, terms in embeddings.TRAIT_TERMS.items():
-            for term in terms:
-                words = embeddings._tokens(term)
+        for _trait, _terms in embeddings.TRAIT_TERMS.items():
+            for _term in _terms:
+                words = embeddings._tokens(_term)
                 known_words = [
                     word for word in words if word in T5_MODEL.wv
                 ]
                 T5_COVERAGE_ROWS.append({
-                    "trait": trait,
-                    "definition_term": term,
+                    "trait": _trait,
+                    "definition_term": _term,
                     "token_count": len(words),
                     "known_token_count": len(known_words),
                     "known_tokens": ", ".join(known_words),
@@ -216,19 +211,9 @@ def _(T5_VALID_SPEAKERS, embeddings, pd):
 @app.cell
 def _(mo):
     mo.md("""
-    ## Similarity scores and predictions
+    ## Predictions
 
-    Valid texts are grouped by annotator and combined into one document
-    per annotator. The model infers one document vector for each combined
-    text and compares it with the definition-term vectors for each trait.
-
-    Each trait score is the maximum cosine similarity across its
-    definition terms. The highest-scoring trait is assigned as the
-    predicted label.
-
-    Similarity scores are not probabilities. Because multiple texts are
-    combined before inference, each annotator contributes one score per
-    trait rather than an average of separate text-level scores.
+    The model's trait per annotator, next to their real dominant trait.
     """)
     return
 
@@ -257,18 +242,13 @@ def _(mo):
     mo.md("""
     ### Spearman correlation analysis
 
-    Spearman correlations were calculated between each personality trait's
-    similarity scores and the corresponding raw BFI scores for 36 annotators.
+    Does each trait's similarity track their real profile score?
+    Spearman compares the two, per trait:
 
-    The correlations were weak, ranging from approximately -0.197 to
-    +0.221. Neuroticism showed the strongest positive association
-    (ρ = 0.221), while extraversion showed the strongest negative
-    association (ρ = -0.197). Agreeableness showed almost no association
-    (ρ = -0.035).
+    - openness +0.104, conscientiousness -0.170, extraversion -0.197,
+      agreeableness -0.035, neuroticism +0.221
 
-    Overall, the results suggest limited correspondence between the
-    similarity scores and the corresponding BFI measurements. These are
-    descriptive correlations; statistical significance has not been tested.
+    Weak. Direction, not proof (n = 36; untested significance).
     """)
     return
 
@@ -307,6 +287,7 @@ def _(T5_PROFILES, T5_SPEAKER_SCORES, pd):
         })
 
     T5_SPEARMAN = pd.DataFrame(T5_CORRELATION_ROWS)
+
     T5_SPEARMAN
     return (T5_SPEARMAN,)
 
@@ -319,8 +300,9 @@ def _(mo):
     Predictions are compared with the dominant personality labels
     derived from the existing annotator profiles.
 
-    - **Accuracy:** proportion of evaluated annotators classified correctly.
-    - **Macro F1:** unweighted average of the F1 scores across the five traits.
+    - **Accuracy:** how many guesses landed right.
+    - **Macro F1:** the average score across the five traits; each
+      trait counts the same.
     - **Uniform baseline:** expected accuracy of 20% when choosing uniformly
       among five traits.
     - **Majority-class baseline:** accuracy obtained by always predicting
@@ -434,13 +416,8 @@ def _(mo):
     mo.md("""
     ## Mean similarity by trait
 
-    The table and figure summarize the mean and standard deviation of
-    each trait's similarity scores across annotators.
-
-    Higher similarity means that a speaker's combined text is closer
-    to at least one definition-term vector for that trait in this model.
-    Similarity values are not probabilities, and a higher value alone
-    does not show that the annotator has that personality trait.
+    Table + figure: the mean similarity per trait, and how much the
+    scores wiggle across annotators. Not probabilities.
     """)
     return
 
@@ -477,6 +454,7 @@ def _(T5_MEAN_SIMILARITY, plt):
     T5_SIM_AX.tick_params(axis="x", rotation=25)
 
     T5_SIM_FIG.tight_layout()
+
     T5_SIM_FIG
     return (T5_SIM_FIG,)
 
@@ -486,8 +464,8 @@ def _(mo):
     mo.md("""
     **What this says:** the five bars sit within a few hundredths of each
     other - the cosine scores crowd together for every trait, which is
-    why the max-race barely distinguishes anything (and why the winner
-    can flip with small changes in the term lists).
+    why the biggest-similarity choice barely separates anyone (and why
+    the winner can flip with small changes in the term lists).
     """)
     return
 
@@ -517,6 +495,7 @@ def _(T5_CONFUSION, plt):
     T5_CM_AX.set_title("Personality trait confusion matrix")
 
     T5_CM_FIG.tight_layout()
+
     T5_CM_FIG
     return (T5_CM_FIG,)
 
@@ -536,13 +515,10 @@ def _(mo):
     mo.md("""
     ## Definition-term coverage
 
-    This table checks whether each personality-definition term has at
-    least one token represented in the Doc2Vec vocabulary. A term with
-    no known tokens cannot contribute a term vector to similarity scoring.
-
-    Coverage is a vocabulary check, not a measure of semantic quality.
-    A term may be present in the vocabulary without its vector accurately
-    representing the intended personality meaning.
+    Vocabulary check: does the model know at least one word of each
+    pole-term? A model that knows nobody's words cannot guess anybody's
+    trait. Coverage ≠ quality: knowing the words says nothing about the
+    guesses' sense.
     """)
     return
 
@@ -570,12 +546,8 @@ def _(T5_TERM_COVERAGE):
 @app.cell
 def _(mo):
     mo.md("""
-    **What this says**
-
-    The coverage summary identifies definition terms that may be missing
-    from the learned vocabulary. Low coverage can limit trait scoring,
-    while high coverage alone does not establish that the embeddings
-    represent the definitions correctly.
+    **What this says:** 20/20 pole-terms = known. The failure = the
+    scoring, not the vocabulary.
     """)
     return
 
@@ -640,72 +612,35 @@ def _(mo):
     mo.md("""
     ## Task 5 comment
 
-    This task explores whether Doc2Vec similarity to personality-definition
-    terms can distinguish annotators' dominant personality labels from
-    their event-related texts.
+    **Setup.** The meaning map, one document per annotator, scored
+    against 4 pole-terms per trait; the biggest twin-score = the trait.
+    Model: a 50-dim Doc2Vec on our own event texts.
 
-    Each annotator is represented by one combined text document. The
-    predicted trait is the trait with the highest maximum cosine similarity
-    to its definition-term vectors.
+    **Scores.** accuracy 11.1% (4/36); macro F1 0.076. Baselines:
+    uniform 20%, majority 52.8%. Spearman vs their real profiles: max
+    +0.22 (neuroticism).
 
-    ### Evaluation results
+    **What this says.**
 
-    The model was evaluated on 36 annotators and achieved an accuracy of
-    11.1% and a macro F1 score of approximately 0.076. Accuracy was below
-    both the uniform five-trait baseline of 20% and the majority-class
-    baseline of 52.78%.
+    - The prediction = almost one trait for everyone (neuroticism,
+      33/36). The balanced 4-pole lists removed the
+      one-trait-takes-all bias, but the crowding remains.
+    - The similarity bars = crowded (all within a few hundredths):
+      Doc2Vec's guesses sit near the pile-average; the biggest-similarity
+      wins barely move.
+    - The Spearman story = weak in every direction. Nothing here
+      tracks their real profiles.
 
-    Predictions were heavily concentrated in neuroticism: 33 of the 36
-    annotators were assigned this label. The confusion matrix therefore
-    indicates poor discrimination between the five reference labels.
+    **Verdict.** Meaning map fails as configured: an honest negative.
+    The paper's stronger setup (big models, 22-31% first-guesses) says
+    personality effects in language = small; a Doc2Vec probe this thin
+    never had a chance, and the vocab is complete (20/20). The loss =
+    the probe, not the words.
 
-    ### Spearman correlations
-
-    Spearman correlations were calculated between each trait's similarity
-    scores and its corresponding raw BFI score for all 36 annotators.
-    The correlations were weak, ranging from approximately -0.197 to
-    +0.221. Neuroticism had the strongest positive association (ρ = 0.221),
-    while extraversion had the strongest negative association (ρ = -0.197).
-    Agreeableness showed almost no association (ρ = -0.035).
-
-    These are descriptive correlations; statistical significance was not
-    tested. They provide little evidence that the similarity scores closely
-    track the corresponding BFI measurements.
-
-    ### Definition-term coverage
-
-    All 20 definition terms (four poles per trait) had at least one token
-    represented in the Doc2Vec vocabulary. This confirms vocabulary
-    coverage, but does not establish that the learned vectors accurately
-    represent the intended personality meanings.
-
-    ### Limitations
-
-    The results indicate weak performance in this exploratory evaluation.
-    Similarity scores are not probabilities or validated personality
-    measurements. The findings do not establish that event-related text
-    can reliably identify personality. Results may be affected by the
-    definition terms, the limited training corpus, and the properties
-    of Doc2Vec embeddings.
-
-    ## Outputs
-
-    **Tables — `outputs/tables/`**
-
-    - `task5_predictions.csv`
-    - `task5_metrics.csv`
-    - `task5_confusion_matrix.csv`
-    - `task5_classification_report.csv`
-    - `task5_mean_similarity.csv`
-    - `task5_speaker_similarity.csv`
-    - `task5_spearman_correlations.csv`
-    - `task5_term_coverage.csv`
-    - `task5_term_coverage_summary.csv`
-
-    **Figures — `outputs/figures/`**
-
-    - `task5_mean_similarity.png`
-    - `task5_confusion_matrix.png`
+    **Weak spots.** The texts = the events' words (the Rule A framing).
+    n = 36. The term lists' balance = itself a modeling choice. Full
+    detail lives in the blocks above; the report carries the
+    limitations.
     """)
     return
 

@@ -14,7 +14,7 @@ def _():
 def _(mo):
     mo.md(
         """
-        # 00 — Setup
+        # 00 - Setup
 
         Load Persona-E2. Run checks. Build `events.parquet`.
         """

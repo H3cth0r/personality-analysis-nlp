@@ -14,7 +14,7 @@ def _():
 @app.cell
 def _(mo):
     mo.md("""
-    # 03 — Feeling words (Task 3)
+    # 03 - Feeling words (Task 3)
 
     Rule A piles (non-neutral reactions). Text column: `english_item`.
     Dictionary: NRC VAD (valence, arousal, dominance).
@@ -40,18 +40,18 @@ def _(mo):
     mo.md("""
     ## VAD scores, per speaker
 
-    One row = one speaker (E1–E36). Scores come from NRC dictionary
-    hits in that speaker's pile — not from every token.
+    One row = one speaker (E1-E36). Scores come from NRC dictionary
+    hits in that speaker's pile, not from every token.
 
-    - **n_vad_hits** — how many tokens sat in the dictionary. This is
-      the denominator for the means.
-    - **valence** — pleasant (1) vs unpleasant (0).
-    - **arousal** — excited (1) vs calm (0).
-    - **dominance** — in control (1) vs overpowered (0).
+    - **n_vad_hits**: how many tokens sat in the dictionary. The
+      divider for the averages above.
+    - **valence**: pleasant (1) vs unpleasant (0).
+    - **arousal**: excited (1) vs calm (0).
+    - **dominance**: in control (1) vs overpowered (0).
 
-    For each dimension: mean, standard deviation, minimum, maximum —
-    all over the hits only. The personality columns (0–1) sit next to
-    the scores so the two can be read together.
+    For each dimension: the average, how much the scores wiggle, the
+    minimum, the maximum,
+    all over the hits only. Right side = their personality scores (0-1).
     """)
     return
 
@@ -71,6 +71,7 @@ def _(PROFILES, SPEAKERS, VAD, pd, vad):
               .rename(columns=dict(zip(T3_TRAIT_COLS, T3_TRAIT_NAMES))))
     T3_JOINED = T3_STATS.join(T3_TRAITS)
     T3_STATS.to_csv("outputs/tables/task3_speaker_vad.csv")
+
     T3_JOINED
     return T3_JOINED, T3_STATS, T3_TRAIT_NAMES
 
@@ -81,14 +82,13 @@ def _(mo):
     **What the table says:** the feeling-word *level* barely moves;
     the *pile* does.
 
-    - Valence means sit in a 0.597–0.607 band (about 1% spread).
-    - Arousal means: 0.437–0.444. Dominance means: 0.520–0.525.
-      Same story — a tight cluster, not 36 different emotional palettes.
-    - Hits: 48k–77k. That range tracks pile size (Task 1 tokens), not a
+    - Valence means sit in a 0.597-0.607 band (about 1% spread).
+    - Arousal means: 0.437-0.444. Dominance means: 0.520-0.525.
+      Same story: a tight band, not 36 different emotional palettes.
+    - Hits: 48k-77k. That range tracks pile size (Task 1 tokens), not a
       different dictionary habit.
-    - Min/max of the hits reach the lexicon edges for everyone
-      (valence 0 and 1; arousal up to 0.99; dominance down to 0.045).
-      Extremes are in the shared event pool, so every pile finds them.
+    - min/max = the scale's ends for everyone: the extremes live in
+      the shared pool, so every pile finds them.
 
     Feeling-word averages are even more alike than the Task 1 counts.
     Any personality signal has to live in the small leftover variation.
@@ -104,9 +104,9 @@ def _(mo):
     Three series, 36 speakers. x = speaker, y = mean score of dictionary
     hits in that pile.
 
-    How to read it: height differences are the between-person signal.
-    If the three lines are almost flat, the dictionary is describing the
-    *events*, not the people.
+    How to read it: height differences are the differences between
+    people. If the three lines are almost flat, the dictionary is
+    describing the *events*, not the people.
     """)
     return
 
@@ -128,6 +128,7 @@ def _(T3_STATS, plt):
     T3_AX.legend()
     T3_FIG.tight_layout()
     T3_FIG.savefig("outputs/figures/task3_vad_means.png", dpi=150)
+
     T3_FIG
     return
 
@@ -140,7 +141,7 @@ def _(mo):
     - Valence rides near 0.60, dominance near 0.52, arousal near 0.44.
       The gap *between* dimensions is larger than the gap *between*
       speakers.
-    - The wiggles are real but tiny — a few thousandths on a 0–1 scale.
+    - The wiggles are real but tiny: a few thousandths on a 0-1 scale.
     - No speaker is a high-valence or high-arousal outlier. Under Rule A
       everyone is sampling the same English event texts; they only differ
       in *which* events they react to, and that is not enough to move
@@ -152,7 +153,7 @@ def _(mo):
 @app.cell
 def _(mo):
     mo.md("""
-    ## Personality (annotator BFI, 0–1)
+    ## Personality (annotator BFI, 0-1)
 
     A **correlation table**. Question: *when a trait score is high, is
     a VAD mean also high?*
@@ -180,11 +181,9 @@ def _(mo):
     mo.md("""
     **What the correlation table says:** one modest tie, the rest noise.
 
-    - Neuroticism × arousal = +0.26 — the strongest cell. More emotional
+    - Neuroticism × arousal = +0.26 = the strongest cell. More emotional
       speakers' piles sit a little higher on arousal. Same direction as
-      Task 1 (neuroticism with pile size / yes-words), and likely the
-      same Rule A effect: they qualify more (and perhaps more intense)
-      events.
+      Task 1, likely the Rule A effect: they qualify more events.
     - Extraversion: small negatives with all three means (−0.14 to
       −0.20). Agreeableness × dominance = −0.15.
     - Openness and conscientiousness: ≈ 0 against valence; small
@@ -201,13 +200,12 @@ def _(mo):
     mo.md("""
     ## Task 3 verdict
 
-    NRC VAD does not separate these 36 people. Mean valence, arousal and
-    dominance occupy a few thousandths of the 0–1 scale; min/max are
-    shared because the dictionary words live in the events. The only
-    hint toward personality is a weak neuroticism–arousal link, easy to
+    NRC VAD separates nobody. The three means sit a few thousandths
+    apart on the 0-1 scale; min/max are shared, because the dictionary
+    words live in the events. One weak tie: neuroticism-arousal, easy to
     read as "who reacts to more events" rather than "who uses different
-    feeling words". Same structural caveat as Task 1: the texts are the
-    events' English, not the speakers' own writing. n = 36.
+    feeling words". The texts = the events' English, not the speakers'
+    own. n = 36.
     """)
     return
 
@@ -217,9 +215,9 @@ def _(mo):
     mo.md("""
     ## Outputs
 
-    - `outputs/tables/task3_speaker_vad.csv` — VAD mean/std/min/max and hits per speaker
-    - `outputs/tables/task3_trait_correlations.csv` — Spearman table
-    - `outputs/figures/task3_vad_means.png` — three mean series, 36 speakers
+    - `outputs/tables/task3_speaker_vad.csv`: VAD mean/std/min/max and hits per speaker
+    - `outputs/tables/task3_trait_correlations.csv`: Spearman table
+    - `outputs/figures/task3_vad_means.png`: three mean series, 36 speakers
     """)
     return
 

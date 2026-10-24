@@ -14,6 +14,8 @@ dependencies = [
     "transformers",  # DistilBERT (Task 5)
     "torch",
     "nbformat>=5.11.1",
+    "nbconvert>=7.17.2",
+    "ipykernel>=7.4.0",
 ]
 
 [build-system]

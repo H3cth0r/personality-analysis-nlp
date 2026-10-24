@@ -21,8 +21,8 @@ def _(mo):
     It must not guess from text alone.
 
     We select one case for each actual dominant trait, preferring wrong
-    predictions because they show where the method can mislead. These
-    are diagnostic examples chosen to show errors, not a fair sample.
+    predictions because they show where the method can mislead. Chosen
+    examples showing errors, not a fair sample.
 
     The texts describe events that annotators reacted to; they did not
     write the event texts themselves.
@@ -98,7 +98,7 @@ def _(
     pd,
 ):
     # Join the existing measurements by anonymized annotator ID.
-    # Normalize the loaded table indexes before joining them.
+    # the CSV indexes arrive with stray spaces: make them plain strings
     for T6_FRAME in (
         T6_TASK1,
         T6_TASK3,
@@ -146,6 +146,7 @@ def _(
         T6_CASES["actual_trait"] == T6_CASES["predicted_trait"]
     )
 
+    # rank the five trait scores; keep the top two and the gap
     def T6_score_summary(row):
         T6_RANKED = row[T6_SIM_COLUMNS].astype(float).sort_values(
             ascending=False
@@ -176,7 +177,7 @@ def _(
     )
     T6_BUCKET_RATES = T6_BUCKET_RATES.reindex(T6_TRAITS)
 
-    # Select one diagnostic case per actual trait. Prefer a wrong prediction,
+    # Select one case per actual trait. Prefer a wrong prediction,
     # then a larger top-versus-second similarity margin.
     T6_SELECTED_IDS = []
     for T6_TRAIT in T6_TRAITS:
@@ -213,15 +214,7 @@ def _(
 
 
 @app.cell
-def _(
-    T6_SELECTED,
-    T6_TASK4,
-    T6_SPEAKERS,
-    T6_BUCKET_RATES,
-    T6_TRAITS,
-    T6_SIM_COLUMNS,
-    pd,
-):
+def _(T6_SELECTED, T6_SPEAKERS, T6_BUCKET_RATES, T6_TRAITS, pd):
     def T6_number(value):
         return round(float(value), 4) if pd.notna(value) else None
 
@@ -237,6 +230,7 @@ def _(
             )
         }
 
+    # build the exact number dict the LLM will see, one per case
     T6_EVIDENCE_BY_ID = {}
 
     for T6_EVIDENCE_ANNOTATOR, T6_ROW in T6_SELECTED.iterrows():
@@ -311,8 +305,12 @@ def _(
             "event_text_examples_not_authored_by_annotator": T6_EXAMPLES,
         }
 
-    T6_EVIDENCE_TABLE = T6_SELECTED[
-    [
+    return (T6_EVIDENCE_BY_ID,)
+
+
+@app.cell
+def _(T6_SELECTED):
+    T6_EVIDENCE_TABLE = T6_SELECTED[[
         "actual_trait",
         "predicted_trait",
         "top_similarity_trait",
@@ -325,10 +323,9 @@ def _(
         "valence_mean",
         "arousal_mean",
         "dominance_mean",
-    ]
-    ].copy()
+    ]].copy()
 
-    # Add normalized per-annotator count rates from Task 1.
+    # Add per-annotator count rates (per 1,000 tokens) from Task 1.
     T6_EVIDENCE_TABLE["repetitions_per_1000"] = (
         1000 * T6_SELECTED["repetitions"] / T6_SELECTED["tokens"]
     )
@@ -339,9 +336,13 @@ def _(
         1000 * T6_SELECTED["no_words"] / T6_SELECTED["tokens"]
     )
     T6_EVIDENCE_TABLE = T6_EVIDENCE_TABLE.round(3).reset_index()
+    return (T6_EVIDENCE_TABLE,)
 
+
+@app.cell
+def _(T6_EVIDENCE_TABLE):
     T6_EVIDENCE_TABLE
-    return T6_EVIDENCE_BY_ID, T6_EVIDENCE_TABLE
+    return
 
 
 
@@ -350,34 +351,26 @@ def _(mo):
     mo.md("""
     **What the evidence table shows**
 
-    The five selected cases cover all five actual dominant-trait
-    categories. Four were misclassified by Task 5, while E17 was
-    classified correctly.
+    Four of five = misclassified; only E17 = correct. Neuroticism = the
+    top-similarity trait for all five. The margins: 0.0353 (E9,
+    weakest) to 0.0726 (E22).
 
-    All five cases received neuroticism as the highest-similarity
-    prediction. The margin between the top two similarity scores ranges
-    from 0.0353 to 0.0726. E9 has the smallest margin, while E22 has
-    the largest.
-
-    Actual traits come from the highest Big Five profile score, while
-    predicted traits come from Doc2Vec similarity scores. Similarity
-    scores are not probabilities, and a larger margin does not guarantee
-    a correct prediction.
-
-    These are diagnostic examples chosen to show errors, not a fair
-    sample for estimating the model's overall performance.
+    Chosen cases (they show errors), not a fair sample. Actual traits =
+    the highest profile score; predicted traits = the twin-scores.
+    Similarities are not probabilities; a bigger margin = no guarantee.
     """)
     return
 
 @app.cell
 def _(mo):
     mo.md("""
-    **Re-runs reuse cached explanations.** Each answer is keyed by a hash of
-    (its evidence + the prompt version). Same inputs = the stored text.
-    New evidence or an edited prompt (version bumped) = fresh API calls.
+    **Re-runs reuse cached explanations.** Each answer is keyed by a
+    fingerprint of the inputs (its evidence + the prompt version).
 
-    The word count is recorded for each explanation as a soft check.
-    Responses are not rejected solely for exceeding 250 words.
+    Same inputs = the stored text. New evidence or an edited prompt
+    (version bumped) = fresh API calls.
+
+    The word count is recorded for each explanation, not enforced.
     """)
     return
 
@@ -517,8 +510,7 @@ def _(mo, T6_EXPLANATIONS):
     **Word-count check:** The prompt requests no more than 250 words.
     The saved counts are E3: 284, E9: 217, E10: 225, E17: 233, and
     E22: 217 words. E3 exceeds the requested limit. Counts are recorded
-    in the CSV as a soft check; longer responses are retained rather
-    than automatically rejected.
+    in the CSV, not enforced; longer responses are kept.
 
     **What the LLM explanations show**
 
@@ -567,6 +559,7 @@ def _(Path, T6_SELECTED, T6_SIM_COLUMNS, T6_TRAITS, plt):
         Path("outputs/figures") / "task6_similarity_heatmap.png",
         dpi=150, bbox_inches="tight",
     )
+
     T6_HEAT_FIG
     return T6_HEAT_FIG,
 
@@ -576,23 +569,14 @@ def _(mo):
     mo.md("""
     **What the similarity heatmap shows**
 
-    Cosine similarity compares vector directions. Values closer to 1
-    indicate more similar directions, while values near 0 indicate
-    little alignment. Similarity scores are not probabilities.
+    A twin-score per case: 1 = twins (same direction), 0 = strangers.
+    Not probabilities.
 
-    Neuroticism has the highest similarity score for all five selected
-    cases. However, only E17 has neuroticism as the actual dominant trait.
-    The other four cases have different actual traits despite receiving
-    the same prediction.
-
-    E22 has the largest top-versus-second margin, approximately 0.073.
-    E9 has the smallest, approximately 0.035. These margins show how far
-    the leading score is above the runner-up, not the probability that
-    the prediction is correct.
-
-    The heatmap shows that the Task 5 method favors neuroticism across
-    cases with different actual traits. Individual similarity rankings
-    should therefore be interpreted cautiously.
+    Neuroticism = the top score for all five; only E17 = actually
+    neurotic. The margins: E22 0.073 (largest), E9 0.035 (smallest).
+    A bigger margin = farther above the runner-up, not more correct.
+    The method favors neuroticism everywhere: read the rankings with
+    care.
     """)
     return
 
@@ -624,6 +608,7 @@ def _(Path, T6_BUCKET_RATES, plt):
         Path("outputs/figures") / "task6_bucket_rates.png",
         dpi=150, bbox_inches="tight",
     )
+
     T6_RATE_FIG
     return T6_RATE_FIG,
 
@@ -639,8 +624,8 @@ def _(mo):
 
     The differences between the five personality-trait groups are small.
     These word-count features provide limited descriptive evidence for
-    distinguishing the traits. Normalizing by token count improves
-    comparability, but does not establish statistical significance.
+    distinguishing the traits. Per-1,000-token rates make comparisons
+    fair; they do not establish significance.
     """)
     return
 
@@ -708,20 +693,15 @@ def _(mo):
     mo.md("""
     **What the VAD chart shows**
 
-    Using all 36 annotators, mean valence ranges from 0.6027 to 0.6050,
-    arousal from 0.4396 to 0.4410, and dominance from 0.5218 to 0.5241.
-    The averages are very close, with no clear visual separation between
-    the five personality-trait groups.
+    All 36 annotators, per actual trait: valence 0.6027-0.6050, arousal
+    0.4396-0.4410, dominance 0.5218-0.5241. The averages crowd
+    together; no visible separation between the five groups. The
+    groups = uneven (19 conscientiousness, 10 agreeableness, 3
+    openness, 2 + 2 elsewhere): read with care.
 
-    Group sizes are uneven, with 19 annotators in conscientiousness,
-    10 in agreeableness, 3 in openness, and only 2 each in extraversion
-    and neuroticism. These results provide little descriptive evidence
-    that aggregate VAD measures distinguish the personality traits.
-
-    VAD scores describe the emotional characteristics of words in the
-    event texts. They do not directly measure annotators' emotional
-    states or establish their personality traits. Annotators reacted
-    to these event texts rather than writing them themselves.
+    The VAD averages do not distinguish the traits. The words = the
+    events', not their own; VAD describes the words, not direct
+    feelings.
     """)
     return
 
@@ -730,34 +710,26 @@ def _(mo):
     mo.md("""
     ## Task 6 comment
 
-    The LLM was prompted to explain the Doc2Vec personality predictions
-    using similarity scores, Big Five profiles, word statistics and VAD
-    measurements. Five cases were selected, one for each actual dominant
-    personality trait.
+    **Setup.** Task 5's predictions, explained by a cheap LLM (DeepSeek,
+    not the paper's model). Its input: only the measured numbers for the
+    five chosen cases. It never reads the texts.
 
-    Task 5 predicted neuroticism for all five cases, but only E17 had
-    neuroticism as its actual dominant trait. Across all 36 annotators,
-    the underlying method achieved 11.1% accuracy, below the uniform
-    baseline of 20% and majority-class baseline of 52.8%.
+    **Scores.** Task 5 = 11.1% accuracy (4/36), below both baselines.
+    All five get neuroticism as the top similarity; only E17 = actually
+    neurotic. Margins 0.035-0.073. All five explanations generated; E3
+    returned 284 words (limit 250, recorded not enforced).
 
-    The word-rate charts show only small differences between trait groups.
-    VAD averages across all 36 annotators are also very close: valence
-    ranges from 0.6027 to 0.6050, arousal from 0.4396 to 0.4410, and
-    dominance from 0.5218 to 0.5241. Uneven group sizes warrant caution
-    when interpreting these descriptive comparisons.
+    **What this says.** The LLM repeats the evidence back plausibly. But
+    the word rates and VAD averages barely move between trait groups:
+    the numbers carry almost no personality signal to find. Its
+    explanation describes the prediction; it cannot cause or validate
+    it.
 
-    All five LLM explanations were generated successfully. Four are
-    within the requested 250-word limit, while E3 returned 284 words.
-    The word counts are recorded in the output CSV, and the longer
-    response is retained rather than silently discarded.
+    **Verdict.** Good for reading the findings, not for proving them.
 
-    The explanations help communicate and critically examine the findings,
-    but they describe predictions after the fact. They do not establish
-    what caused Doc2Vec to make a particular prediction or prove that
-    the method reliably distinguishes personality traits.
-
-    **Conclusion:** LLM prompting makes the findings easier to interpret,
-    but it does not validate the underlying personality predictions.
+    **Weak spots.** The texts = the events', not their own; the cases =
+    chosen to show errors, not a fair sample; n = 36. The report
+    carries the limitations.
     """)
     return
 
@@ -766,13 +738,13 @@ def _(mo):
     mo.md("""
     ## Outputs
 
-    - `outputs/tables/task6_llm_explanations.csv` — five explanations,
+    - `outputs/tables/task6_llm_explanations.csv`: five explanations,
       including the model, prompt version, evidence hash, status and word count.
-    - `outputs/figures/task6_similarity_heatmap.png` — similarity scores
+    - `outputs/figures/task6_similarity_heatmap.png`: similarity scores
       for the selected cases.
-    - `outputs/figures/task6_bucket_rates.png` — normalized word rates
-      by personality-trait group.
-    - `outputs/figures/task6_vad_by_trait.png` — average VAD scores by
+    - `outputs/figures/task6_bucket_rates.png`: word rates per 1,000
+      tokens, by personality-trait group.
+    - `outputs/figures/task6_vad_by_trait.png`: average VAD scores by
       actual dominant trait, using all annotators with available measurements.
     """)
     return

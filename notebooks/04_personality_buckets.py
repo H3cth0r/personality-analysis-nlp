@@ -5,7 +5,19 @@ app = marimo.App()
 
 
 @app.cell
+def _(mo):
+    mo.md("""
+    # 04 - Personality buckets (Task 4)
+
+    One bucket per speaker's strongest trait ("dominant"). The same
+    counting as Task 1, grouped by trait instead of person.
+    """)
+    return
+
+
+@app.cell
 def _():
+    # SETUP:
     import matplotlib.pyplot as plt
     import pandas as pd
 
@@ -14,6 +26,16 @@ def _():
     SPEAKERS = data.load_speakers()
     PROFILES = data.load_profiles()
     return PROFILES, SPEAKERS, buckets, counting, pd, plt
+
+
+@app.cell
+def _(mo):
+    mo.md("""
+    ## Who is in which bucket
+
+    Dominant trait = the highest of their five profile scores.
+    """)
+    return
 
 
 @app.cell
@@ -31,9 +53,22 @@ def _(PROFILES, buckets, pd):
 
 
 @app.cell
+def _(mo):
+    mo.md("""
+    ## Counting each bucket
+
+    The same word counts as Task 1, over the bucket's texts. Raw totals
+    depend on the bucket size. Compare per 1,000 tokens (the table at
+    the end).
+    """)
+    return
+
+
+@app.cell
 def _(PROFILES, SPEAKERS, buckets, counting, pd):
     T4_BUCKETS = buckets.bucket_speakers(SPEAKERS, PROFILES)
 
+    # rows become buckets; drop the unshown set column; keep whole numbers
     T4_STATS = pd.DataFrame({
         trait: counting.speaker_stats(texts)
         for trait, texts in T4_BUCKETS.items()
@@ -47,21 +82,22 @@ def _(PROFILES, SPEAKERS, buckets, counting, pd):
 def _(T4_BUCKETS, buckets, counting, plt):
     T4_FIG, T4_AXES = plt.subplots(1, 5, figsize=(18, 4), sharex=False)
 
-    for ax, trait in zip(T4_AXES, buckets.TRAIT_NAMES):
-        series = counting.chunked_series(T4_BUCKETS[trait], chunks=10)
+    for _ax, _trait in zip(T4_AXES, buckets.TRAIT_NAMES):
+        _series = counting.chunked_series(T4_BUCKETS[_trait], chunks=10)
 
-        ax.plot(series["tokens"], series["repetitions"], label="repetitions")
-        ax.plot(series["tokens"], series["no_words"], label="negations")
-        ax.plot(series["tokens"], series["yes_words"], label="confirmations")
+        _ax.plot(_series["tokens"], _series["repetitions"], label="repetitions")
+        _ax.plot(_series["tokens"], _series["no_words"], label="negations")
+        _ax.plot(_series["tokens"], _series["yes_words"], label="confirmations")
 
-        ax.set_title(trait)
-        ax.tick_params(labelsize=8)
+        _ax.set_title(_trait)
+        _ax.tick_params(labelsize=8)
 
     T4_AXES[0].set_ylabel("count")
     T4_FIG.supxlabel("tokens so far")
     T4_AXES[0].legend(fontsize=8)
 
     T4_FIG.tight_layout()
+
     T4_FIG
     return (T4_FIG,)
 
@@ -74,6 +110,14 @@ def _(T4_FIG, T4_STATS):
         "outputs/figures/task4_bucket_evolution.png",
         dpi=150,
     )
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md("""
+    ## Per-1,000-token rates
+    """)
     return
 
 
@@ -91,12 +135,18 @@ def _():
     return (mo,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
-    mo.md(r"""
+    mo.md("""
     ### Task 4 comment
 
-    The five dominant-personality buckets show very similar word-count patterns when normalized by tokens. Repetitions range from about 326 to 333 per 1,000 tokens, confirmations from about 1.42 to 1.48, and negations from about 13.68 to 14.21. This suggests that the five buckets do not act very differently in these measures. The large differences in raw totals are mainly explained by the unequal number of speakers in each bucket, especially the large conscientiousness bucket. These results are descriptive only: the buckets contain very different numbers of speakers, and the texts are event reactions rather than each speaker's own writing.
+    **What this says.** The five buckets = nearly identical word rates:
+    326-333 repetitions; 1.42-1.48 yes-words; 13.68-14.21 no-words (per
+    1,000 tokens). Grouping by trait changes little.
+
+    **Weak spots.** The buckets = very uneven (19 people in
+    conscientiousness, 2 in extraversion). The smallest read as
+    anecdotes. The texts = the events' words, not the speakers' own.
     """)
     return
 
