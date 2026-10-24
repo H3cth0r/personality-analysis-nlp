@@ -283,6 +283,7 @@ def _(T5_PROFILES, T5_SPEAKER_SCORES, pd):
         })
 
     T5_SPEARMAN = pd.DataFrame(T5_CORRELATION_ROWS)
+
     T5_SPEARMAN
     return (T5_SPEARMAN,)
 
@@ -295,8 +296,9 @@ def _(mo):
     Predictions are compared with the dominant personality labels
     derived from the existing annotator profiles.
 
-    - **Accuracy:** proportion of evaluated annotators classified correctly.
-    - **Macro F1:** unweighted average of the F1 scores across the five traits.
+    - **Accuracy:** how many guesses landed right.
+    - **Macro F1:** the average score across the five traits; each
+      trait counts the same.
     - **Uniform baseline:** expected accuracy of 20% when choosing uniformly
       among five traits.
     - **Majority-class baseline:** accuracy obtained by always predicting
@@ -410,13 +412,8 @@ def _(mo):
     mo.md("""
     ## Mean similarity by trait
 
-    The table and figure summarize the mean and standard deviation of
-    each trait's similarity scores across annotators.
-
-    Higher similarity means that a speaker's combined text is closer
-    to at least one definition-term vector for that trait in this model.
-    Similarity values are not probabilities, and a higher value alone
-    does not show that the annotator has that personality trait.
+    Table + figure: the mean similarity per trait, and how much the
+    scores wiggle across annotators. Not probabilities.
     """)
     return
 
@@ -453,6 +450,7 @@ def _(T5_MEAN_SIMILARITY, plt):
     T5_SIM_AX.tick_params(axis="x", rotation=25)
 
     T5_SIM_FIG.tight_layout()
+
     T5_SIM_FIG
     return (T5_SIM_FIG,)
 
@@ -462,8 +460,8 @@ def _(mo):
     mo.md("""
     **What this says:** the five bars sit within a few hundredths of each
     other - the cosine scores crowd together for every trait, which is
-    why the max-race barely distinguishes anything (and why the winner
-    can flip with small changes in the term lists).
+    why the biggest-similarity choice barely separates anyone (and why
+    the winner can flip with small changes in the term lists).
     """)
     return
 
@@ -493,6 +491,7 @@ def _(T5_CONFUSION, plt):
     T5_CM_AX.set_title("Personality trait confusion matrix")
 
     T5_CM_FIG.tight_layout()
+
     T5_CM_FIG
     return (T5_CM_FIG,)
 

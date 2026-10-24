@@ -43,13 +43,14 @@ def _(mo):
     One row = one speaker (E1-E36). Scores come from NRC dictionary
     hits in that speaker's pile, not from every token.
 
-    - **n_vad_hits**: how many tokens sat in the dictionary. This is
-      the denominator for the means.
+    - **n_vad_hits**: how many tokens sat in the dictionary. The
+      divider for the averages above.
     - **valence**: pleasant (1) vs unpleasant (0).
     - **arousal**: excited (1) vs calm (0).
     - **dominance**: in control (1) vs overpowered (0).
 
-    For each dimension: mean, standard deviation, minimum, maximum,
+    For each dimension: the average, how much the scores wiggle, the
+    minimum, the maximum,
     all over the hits only. Right side = their personality scores (0-1).
     """)
     return
@@ -70,6 +71,7 @@ def _(PROFILES, SPEAKERS, VAD, pd, vad):
               .rename(columns=dict(zip(T3_TRAIT_COLS, T3_TRAIT_NAMES))))
     T3_JOINED = T3_STATS.join(T3_TRAITS)
     T3_STATS.to_csv("outputs/tables/task3_speaker_vad.csv")
+
     T3_JOINED
     return T3_JOINED, T3_STATS, T3_TRAIT_NAMES
 
@@ -82,10 +84,10 @@ def _(mo):
 
     - Valence means sit in a 0.597-0.607 band (about 1% spread).
     - Arousal means: 0.437-0.444. Dominance means: 0.520-0.525.
-      Same story: a tight cluster, not 36 different emotional palettes.
+      Same story: a tight band, not 36 different emotional palettes.
     - Hits: 48k-77k. That range tracks pile size (Task 1 tokens), not a
       different dictionary habit.
-    - min/max = the lexicon edges for everyone: the extremes live in
+    - min/max = the scale's ends for everyone: the extremes live in
       the shared pool, so every pile finds them.
 
     Feeling-word averages are even more alike than the Task 1 counts.
@@ -102,9 +104,9 @@ def _(mo):
     Three series, 36 speakers. x = speaker, y = mean score of dictionary
     hits in that pile.
 
-    How to read it: height differences are the between-person signal.
-    If the three lines are almost flat, the dictionary is describing the
-    *events*, not the people.
+    How to read it: height differences are the differences between
+    people. If the three lines are almost flat, the dictionary is
+    describing the *events*, not the people.
     """)
     return
 
@@ -126,6 +128,7 @@ def _(T3_STATS, plt):
     T3_AX.legend()
     T3_FIG.tight_layout()
     T3_FIG.savefig("outputs/figures/task3_vad_means.png", dpi=150)
+
     T3_FIG
     return
 

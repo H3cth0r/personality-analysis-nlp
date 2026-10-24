@@ -16,7 +16,8 @@ def _(mo):
     mo.md("""
     # 01 - Speaker stats (Task 1)
 
-    Rule A piles (non-neutral reactions). Text column: `english_item`.
+    Rule A = each person's pile = the events that made them feel
+    something. Text column: `english_item`.
     """)
     return
 
@@ -41,7 +42,7 @@ def _(mo):
     One row = one speaker (E1-E36). Counts span all their texts.
 
     - **vocabulary_size**: how many *different* words they used
-      (lemmatized: "agreed" counts as "agree").
+      (words counted in their base form: "agreed" counts as "agree").
     - **tokens**: how many words in total.
     - **repetitions**: how many times a word is *reused inside one text*.
       A text with 30 words and 25 different ones repeats 5.
@@ -68,6 +69,7 @@ def _(PROFILES, SPEAKERS, counting, pd):
               .rename(columns=dict(zip(T1_TRAIT_COLS, T1_TRAIT_NAMES))))
     T1_JOINED = T1_STATS.join(T1_TRAITS)
     T1_STATS.to_csv("outputs/tables/task1_speaker_stats.csv")
+
     T1_JOINED
     return T1_JOINED, T1_TRAIT_NAMES
 
@@ -78,7 +80,8 @@ def _(mo):
     **What the table says:** speakers differ most in their *pile*, not in
     their words.
 
-    - Vocabulary size sits in a tight band: 7.5k-9.7k lemmas (~15% spread)
+    - Vocabulary size sits in a tight band: 7.5k-9.7k different words
+      (~15% spread)
       across all 36 people.
     - Tokens: 104k-167k (~30% spread). This follows from pile size:
       how many stories made them feel something.
@@ -100,7 +103,7 @@ def _(mo):
 
     Each small panel = one speaker. The lines are "how many by now?"
     counters: we walk through their texts in reading order, and at 10
-    checkpoints we note the total reached so far.
+    stops along the way we note the total reached so far.
 
     - x axis = words read so far.
     - y axis = repetitions / negations / confirmations accumulated so far.
@@ -139,6 +142,7 @@ def _(SPEAKERS, counting, plt):
     T1_FIG.supxlabel("tokens so far")
     T1_FIG.tight_layout()
     T1_FIG.savefig("outputs/figures/task1_evolution.png", dpi=150)
+
     T1_FIG
     return
 
@@ -167,7 +171,8 @@ def _(mo):
     A **correlation table**. The question: *when a personality score is
     high, does a word count also tend to be high?* Cells go from -1
     to +1: +1 = the two rise together, 0 = no link, -1 = one rises
-    while the other falls. Method = Spearman (rank-based).
+    while the other falls. Method = Spearman (compares rank order,
+    not raw size).
 
     Example reading: neuroticism × yes_words = 0.21, so slightly
     emotional speakers use slightly more agree-words. Weak.

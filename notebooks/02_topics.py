@@ -40,7 +40,7 @@ def _(mo):
     ## (a) Vocabulary growth vs tokens
 
     "How many new words by now?" Each curve = one speaker, measured at
-    10 checkpoints of their pile.
+    10 stops along their pile.
 
     - **Left panel:** raw counts. Every speaker climbs from 0 to their
       vocabulary size; curves differ mainly in length (pile size).
@@ -67,6 +67,7 @@ def _(SPEAKERS, counting, plt):
     T2_AX2.set_ylabel("vocabulary size")
     T2_FIG.tight_layout()
     T2_FIG.savefig("outputs/figures/task2_vocab_growth.png", dpi=150)
+
     T2_FIG
     return
 
@@ -87,7 +88,7 @@ def _(mo):
     ## (b) The topic robot (LDA): how many topic piles per speaker?
 
     For every speaker we train one LDA per candidate topic count
-    (k = 3, 5, 8, 12, 16, 20) and score it twice:
+    (k = 3, 5, 8, 12, 16, 20) and grade the topic piles two ways:
 
     - **coherence (c_v)**, blue, left axis: "do the piles make sense
       together?" Higher = better.
@@ -118,6 +119,7 @@ def _(SPEAKERS, plt, topics):
     T2_FIG2.supxlabel("number of topics (k)")
     T2_FIG2.tight_layout()
     T2_FIG2.savefig("outputs/figures/task2_lda_sweeps.png", dpi=150)
+
     T2_FIG2
     return (T2_SWEEPS,)
 
@@ -153,6 +155,7 @@ def _(PROFILES, T2_SWEEPS, pd, topics):
             .loc[T2_TRAIT_NAMES, ["best_k", "coherence"]])
     T2_JOINED.to_csv("outputs/tables/task2_best_topics.csv")
     T2_CORR.round(3).to_csv("outputs/tables/task2_trait_correlations.csv")
+
     T2_BEST
     return (T2_CORR,)
 

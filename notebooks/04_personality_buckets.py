@@ -96,6 +96,7 @@ def _(T4_BUCKETS, buckets, counting, plt):
     T4_AXES[0].legend(fontsize=8)
 
     T4_FIG.tight_layout()
+
     T4_FIG
     return (T4_FIG,)
 

@@ -17,16 +17,12 @@ def _(mo):
 
     The dataset authors' question, ours to reproduce: **given a person's
     Big Five profile, how would they emotionally react to an event?**
+    Three ways of asking (no-persona / persona / persona + think step by
+    step), judged top-1 / top-2 against what the personality groups
+    actually answered. Our model = a free one: our numbers compare with
+    our baselines, their scores = a reference.
 
-    - three prompt strategies (no-personality observer / persona /
-      persona + think-step-by-step),
-    - evaluated with their metrics (top-1 / top-2 accuracy) against what
-      the personality groups actually answered (from the consensus file,
-      offline),
-    - their published numbers as context (top-1 ~22-31%): our model is a
-      free one, so the fair comparison = our numbers vs our baselines.
-
-    This skeleton runs WITHOUT any model call: eval set + personas +
+    This notebook runs WITHOUT any model call: eval set + personas +
     prompt examples only.
     """)
     return
@@ -40,6 +36,7 @@ def _():
     from personality import data, env, llm
 
     env.load_env()
+
     T7_CONSENSUS_RAW = data.load_group_consensus()
     T7_EVENTS = data.load_events()
     T7_PROFILES = data.load_profiles()
@@ -49,6 +46,7 @@ def _():
     T7_POLAR = pd.read_json(
         "data/interim/task7/polarity.jsonl", lines=True
     )
+
     return (data, env, llm, pd, plt, T7_ANSWERS, T7_CONSENSUS_RAW,
             T7_EVENTS, T7_POLAR, T7_PROFILES)
 
@@ -97,7 +95,7 @@ def _(mo):
     ## The personas: one per personality group
 
     Each group's persona = its members' average Big Five profile (the
-    centroid), presented as the paper's persona block.
+    group's average person), presented as the paper's persona block.
     """)
     return
 
@@ -109,9 +107,11 @@ def _(T7_CONSENSUS_RAW, T7_PROFILES, llm):
             T7_CONSENSUS_RAW.iloc[0][f"g{n}_members"]).split("/")]
         for n in range(1, 7)
     }
+
     T7_PERSONAS = llm.cluster_personas(
         T7_PROFILES.set_index("ID"), T7_MEMBERS
     )
+
     T7_PERSONAS
     return (T7_PERSONAS,)
 
@@ -133,11 +133,12 @@ def _(T7_EVENTS, T7_PERSONAS, llm, pd):
 
     T7_EXAMPLES = pd.DataFrame([
         ("general (no personality)", llm.general_prompt(T7_EXAMPLE_EVENT)),
-        ("persona (cluster centroid)",
+        ("persona (the group's average person)",
          llm.persona_prompt(T7_EXAMPLE_EVENT, T7_PERSONAS["g1"])),
         ("persona + step-by-step",
          llm.persona_prompt_cot(T7_EXAMPLE_EVENT, T7_PERSONAS["g1"])),
     ], columns=["strategy", "prompt"])
+
     T7_EXAMPLES
     return (T7_EXAMPLES,)
 
@@ -148,7 +149,7 @@ def _(mo):
     ## Results: the three strategies vs the group answers
 
     Answers come from the batch runner (`scripts/run_task7.py`, 100
-    seeded events x 6 clusters x 3 strategies); this notebook reads the
+    seeded events x 6 groups x 3 strategies); this notebook reads the
     cache. Accuracy compares each first/second guess with the group's
     stored majority emotion. Baselines: uniform (1 in 7) and the most
     frequent answer in the sample.
@@ -173,8 +174,8 @@ def _(T7_ANSWERS, T7_CONSENSUS_RAW, T7_POLAR, llm, pd):
         str(T7_LOOKUP.loc[e, "source"]) for e in T7_OK["event_id"]
     ]
 
-    # the polarity ablation ran once per event (no persona): broadcast
-    # each answer to the six clusters' ground truths
+    # our extra test (one change at a time; no persona) ran once per
+    # event: broadcast each answer to the six groups' ground truths
     T7_POLAR_ROWS = []
     for _, _row in T7_POLAR[T7_POLAR["status"] == "ok"].iterrows():
         _event = int(_row["key"].split("|")[0])
@@ -236,6 +237,7 @@ def _(T7_BASELINES, T7_METRICS, T7_OK, pd):
             ).eq(_part["truth"].str.lower()).mean(),
         })
     T7_BY_DOMAIN = pd.DataFrame(T7_DOMAIN_ROWS)
+
     T7_BY_DOMAIN
     return (T7_BY_DOMAIN,)
 
@@ -311,7 +313,7 @@ def _(mo):
     group's side when sides differ?" On easy events we beat baselines;
     on hard events even their big models stay low.
 
-    **Caveats.** Texts = the events' words, not the writers' own; 100
+    **Weak spots.** Texts = the events' words, not the writers' own; 100
     events per prompt; our model is not theirs; our subset is our
     rebuilt version (documented above); 1,894 of 1,900 calls worked
     (network/parse misses, retried).
@@ -324,9 +326,9 @@ def _(mo):
     mo.md("""
     ## Outputs
 
-    - `outputs/tables/task7_metrics.csv` — accuracy per strategy
-    - `outputs/tables/task7_by_domain.csv` — the same, split by domain
-    - `outputs/figures/task7_accuracy.png` — the comparison chart
+    - `outputs/tables/task7_metrics.csv`: accuracy per strategy
+    - `outputs/tables/task7_by_domain.csv`: the same, split by domain
+    - `outputs/figures/task7_accuracy.png`: the comparison chart
     - answers cache: `data/interim/task7/answers.jsonl` (gitignored)
     """)
     return
