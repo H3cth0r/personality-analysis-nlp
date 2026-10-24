@@ -6,6 +6,7 @@ app = marimo.App()
 
 @app.cell
 def _():
+    # SETUP:
     import matplotlib.pyplot as plt
     import pandas as pd
 
@@ -47,15 +48,15 @@ def _(PROFILES, SPEAKERS, buckets, counting, pd):
 def _(T4_BUCKETS, buckets, counting, plt):
     T4_FIG, T4_AXES = plt.subplots(1, 5, figsize=(18, 4), sharex=False)
 
-    for ax, trait in zip(T4_AXES, buckets.TRAIT_NAMES):
-        series = counting.chunked_series(T4_BUCKETS[trait], chunks=10)
+    for _ax, _trait in zip(T4_AXES, buckets.TRAIT_NAMES):
+        _series = counting.chunked_series(T4_BUCKETS[_trait], chunks=10)
 
-        ax.plot(series["tokens"], series["repetitions"], label="repetitions")
-        ax.plot(series["tokens"], series["no_words"], label="negations")
-        ax.plot(series["tokens"], series["yes_words"], label="confirmations")
+        _ax.plot(_series["tokens"], _series["repetitions"], label="repetitions")
+        _ax.plot(_series["tokens"], _series["no_words"], label="negations")
+        _ax.plot(_series["tokens"], _series["yes_words"], label="confirmations")
 
-        ax.set_title(trait)
-        ax.tick_params(labelsize=8)
+        _ax.set_title(_trait)
+        _ax.tick_params(labelsize=8)
 
     T4_AXES[0].set_ylabel("count")
     T4_FIG.supxlabel("tokens so far")

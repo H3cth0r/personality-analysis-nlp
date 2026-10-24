@@ -134,10 +134,10 @@ def _(mo):
 
 @app.cell
 def _(T5_VALID_SPEAKERS, embeddings, pd):
-    from pathlib import Path
+    from pathlib import Path as _Path
 
-    T5_SCORES_CACHE = Path("data/interim/task5_speaker_scores.parquet")
-    T5_COVERAGE_CACHE = Path("data/interim/task5_term_coverage.parquet")
+    T5_SCORES_CACHE = _Path("data/interim/task5_speaker_scores.parquet")
+    T5_COVERAGE_CACHE = _Path("data/interim/task5_term_coverage.parquet")
 
     if T5_SCORES_CACHE.exists():
         T5_SPEAKER_SCORES = pd.read_parquet(T5_SCORES_CACHE)
@@ -190,9 +190,9 @@ def _(T5_VALID_SPEAKERS, embeddings, pd):
         T5_SPEAKER_SCORES.index = T5_SPEAKER_TEXTS.index
 
         T5_COVERAGE_ROWS = []
-        for trait, terms in embeddings.TRAIT_TERMS.items():
-            for term in terms:
-                words = embeddings._tokens(term)
+        for _trait, _terms in embeddings.TRAIT_TERMS.items():
+            for _term in _terms:
+                words = embeddings._tokens(_term)
                 known_words = [
                     word for word in words if word in T5_MODEL.wv
                 ]
@@ -582,7 +582,7 @@ def _(mo):
 
 @app.cell
 def _(
-    Path,
+    _Path,
     T5_CM_FIG,
     T5_CONFUSION,
     T5_COVERAGE_SUMMARY,
@@ -595,8 +595,8 @@ def _(
     T5_SPEARMAN,
     T5_TERM_COVERAGE,
 ):
-    Path("outputs/tables").mkdir(parents=True, exist_ok=True)
-    Path("outputs/figures").mkdir(parents=True, exist_ok=True)
+    _Path("outputs/tables").mkdir(parents=True, exist_ok=True)
+    _Path("outputs/figures").mkdir(parents=True, exist_ok=True)
 
     T5_RESULTS.to_csv("outputs/tables/task5_predictions.csv")
     T5_METRICS.to_csv("outputs/tables/task5_metrics.csv", index=False)
