@@ -1,0 +1,26 @@
+[project]
+name = "personality-analysis"
+version = "0.1.0"
+description = "Project 13 - Personality Analysis on the Persona-E2 dataset (NLP course)"
+requires-python = ">=3.11"
+dependencies = [
+    "pandas",
+    "pyarrow",       # parquet engine (the file contract runs on parquet)
+    "marimo",
+    "matplotlib",
+    "gensim",        # LDA (Task 2)
+    "nltk",          # tokenization, stopwords
+    "scikit-learn",  # cosine similarity (Task 5)
+    "transformers",  # DistilBERT (Task 5)
+    "torch",
+    "nbformat>=5.11.1",
+    "nbconvert>=7.17.2",
+    "ipykernel>=7.4.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/personality"]

@@ -218,3 +218,12 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# --- Project data: never commit the dataset (CC BY-NC-SA license) ---
+data/**
+!data/**/
+!data/**/.gitkeep
+
+# build artifacts (regenerable)
+reports/*.html
+reports/__marimo__/

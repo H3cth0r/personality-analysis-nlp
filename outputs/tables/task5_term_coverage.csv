@@ -1,0 +1,21 @@
+trait,definition_term,token_count,known_token_count,known_tokens,covered
+openness,intellectual,1,1,intellectual,True
+openness,artistic,1,1,artistic,True
+openness,imaginative,1,1,imaginative,True
+openness,refined,1,1,refine,True
+conscientiousness,responsible,1,1,responsible,True
+conscientiousness,scrupulous,1,1,scrupulous,True
+conscientiousness,persevering,1,1,persevere,True
+conscientiousness,tidy,1,1,tidy,True
+extraversion,talkative,1,1,talkative,True
+extraversion,sociable,1,1,sociable,True
+extraversion,adventurous,1,1,adventurous,True
+extraversion,open,1,1,open,True
+agreeableness,good-natured,2,2,"good, natured",True
+agreeableness,cooperative,1,1,cooperative,True
+agreeableness,mild,1,1,mild,True
+agreeableness,gentle,1,1,gentle,True
+neuroticism,anxious,1,1,anxious,True
+neuroticism,excitable,1,1,excitable,True
+neuroticism,nervous,1,1,nervous,True
+neuroticism,tense,1,1,tense,True
