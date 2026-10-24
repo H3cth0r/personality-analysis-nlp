@@ -57,6 +57,7 @@ def _(SPEAKERS, counting, plt):
     for _, pile_b in SPEAKERS.groupby("annotator"):
         growth = counting.vocab_growth(pile_b["english_item"])
         T2_AX1.plot(growth["tokens"], growth["vocab_size"], linewidth=1)
+        # x as a share of the pile (0 to 1): the shape, not the length
         frac = growth["tokens"] / growth["tokens"].iloc[-1]
         T2_AX2.plot(frac, growth["vocab_size"], linewidth=1)
     T2_AX1.set_title("raw tokens", fontsize=10)
@@ -108,6 +109,7 @@ def _(SPEAKERS, plt, topics):
     for ax_b, (name_b, pile_c) in zip(T2_AXES.flat, SPEAKERS.groupby("annotator")):
         result = topics.sweep_speaker(name_b, pile_c["english_item"])
         T2_SWEEPS[name_b] = result
+        # the right axis = the second scale: gray = perplexity
         ax2 = ax_b.twinx()
         l1 = ax_b.plot(result["k"], result["coherence"], "o-", label="coherence")
         l2 = ax2.plot(result["k"], result["perplexity"], "s--",

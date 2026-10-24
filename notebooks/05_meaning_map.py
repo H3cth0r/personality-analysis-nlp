@@ -76,6 +76,7 @@ def _(T5_PROFILES, T5_SPEAKERS, buckets, pd):
         subset=["annotator", "english_item"]
     ).copy()
 
+    # force plain strings (some cells arrive as gaps); trim stray spaces
     T5_VALID_SPEAKERS["annotator"] = (
         T5_VALID_SPEAKERS["annotator"].astype(str).str.strip()
     )
@@ -83,11 +84,13 @@ def _(T5_PROFILES, T5_SPEAKERS, buckets, pd):
         T5_VALID_SPEAKERS["english_item"].astype(str).str.strip()
     )
 
+    # drop rows with an empty annotator or empty text; renumber after
     T5_VALID_SPEAKERS = T5_VALID_SPEAKERS[
         (T5_VALID_SPEAKERS["annotator"] != "")
         & (T5_VALID_SPEAKERS["english_item"] != "")
     ].reset_index(drop=True)
 
+    # show the row count at each step: the cut's cost
     T5_DATA_SUMMARY = pd.DataFrame({
         "measure": [
             "All speaker rows",
@@ -130,6 +133,7 @@ def _(T5_VALID_SPEAKERS, embeddings, pd):
     T5_SCORES_CACHE = Path("data/interim/task5_speaker_scores.parquet")
     T5_COVERAGE_CACHE = Path("data/interim/task5_term_coverage.parquet")
 
+    # same numbers every run: load the saved scores, or train once and save
     if T5_SCORES_CACHE.exists():
         T5_SPEAKER_SCORES = pd.read_parquet(T5_SCORES_CACHE)
         T5_TERM_COVERAGE = pd.read_parquet(T5_COVERAGE_CACHE)

@@ -91,23 +91,31 @@ def bound_names(assignments_source):
 
 def dedupe_imports_in_cell(source, covered):
     """Rewrite one code cell: drop/shrink import statements that add
-    nothing new; keep the rest verbatim."""
+    nothing new; keep everything else line-for-line, so comments and
+    blank lines ride along (ast segments would drop them)."""
+    lines = source.split("\n")
     tree = ast.parse(source)
-    keep = []
+    out = []
+    cursor = 0
     for node in tree.body:
-        segment = ast.get_source_segment(source, node) or ast.unparse(node)
+        start, end = node.lineno - 1, node.end_lineno  # end exclusive
+        out.extend(lines[cursor:start])
+        segment = "\n".join(lines[start:end])
         if isinstance(node, (ast.Import, ast.ImportFrom)):
-            pairs = set(import_pairs(segment))
-            new_pairs = pairs - covered
+            new_pairs = set(import_pairs(segment)) - covered
             if not new_pairs:
-                continue
-            covered.update(new_pairs)
-            if isinstance(node, ast.ImportFrom):
-                segment = reemit(segment, new_pairs)
-            keep.append(segment)
+                pass  # nothing new: drop the import's lines entirely
+            else:
+                covered.update(new_pairs)
+                if isinstance(node, ast.ImportFrom):
+                    out.append(reemit(segment, new_pairs))
+                else:
+                    out.extend(lines[start:end])
         else:
-            keep.append(segment)
-    return "\n".join(keep)
+            out.extend(lines[start:end])
+        cursor = end
+    out.extend(lines[cursor:])  # anything after the last statement
+    return "\n".join(out)
 
 
 def build():

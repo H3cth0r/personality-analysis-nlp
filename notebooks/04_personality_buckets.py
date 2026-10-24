@@ -68,6 +68,7 @@ def _(mo):
 def _(PROFILES, SPEAKERS, buckets, counting, pd):
     T4_BUCKETS = buckets.bucket_speakers(SPEAKERS, PROFILES)
 
+    # rows become buckets; drop the unshown set column; keep whole numbers
     T4_STATS = pd.DataFrame({
         trait: counting.speaker_stats(texts)
         for trait, texts in T4_BUCKETS.items()

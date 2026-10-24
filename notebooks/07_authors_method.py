@@ -160,6 +160,7 @@ def _(mo):
 @app.cell
 def _(T7_ANSWERS, T7_CONSENSUS_RAW, T7_POLAR, llm, pd):
     T7_OK = T7_ANSWERS[T7_ANSWERS["status"] == "ok"].copy()
+    # the stored key = "event_id|cluster|strategy"
     T7_OK[["event_id", "cluster", "strategy"]] = (
         T7_OK["key"].str.split("|", expand=True)
     )
@@ -214,6 +215,7 @@ def _(T7_ANSWERS, T7_CONSENSUS_RAW, T7_POLAR, llm, pd):
 
 @app.cell
 def _(T7_BASELINES, T7_METRICS, T7_OK, pd):
+    # which sources count as news or life; the rest = social
     NEWS = {"ABC News", "BBC News", "Independent News",
             "Today's Headlines", "The Paper", "Weibo Trending Topics",
             "WeChat article"}

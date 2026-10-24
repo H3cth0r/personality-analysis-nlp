@@ -59,7 +59,7 @@ def speaker_stats(texts):
         yes += count_yes(pile)
         no += count_no(pile)
     return {
-        "vocabulary_set": set(tokens),
+        "vocabulary_set": set(tokens),   # the raw word set, for reuse; never shown
         "vocabulary_size": len(set(tokens)),
         "tokens": len(tokens),
         "repetitions": repetitions,

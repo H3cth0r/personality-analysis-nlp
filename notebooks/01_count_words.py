@@ -61,6 +61,7 @@ def _(PROFILES, SPEAKERS, counting, pd):
         name: counting.speaker_stats(pile["english_item"])
         for name, pile in SPEAKERS.groupby("annotator")
     }
+    # rows become speakers; drop the unshown set column; keep whole numbers
     T1_STATS = pd.DataFrame(T1_ROWS).T.drop(columns="vocabulary_set").astype(int)
     T1_TRAIT_COLS = ["Open.", "Cons.", "Extra.", "Agree.", "Neuro."]
     T1_TRAIT_NAMES = ["openness", "conscientiousness", "extraversion",
@@ -135,6 +136,7 @@ def _(SPEAKERS, counting, plt):
         _ax1.tick_params(labelsize=7)
         _ax1.xaxis.set_major_locator(MaxNLocator(4))
         _ax1.yaxis.set_major_locator(MaxNLocator(5))
+    # wipe the panel labels (the shared supxlabel carries them)
     for _ax2 in T1_AXES.flat:
         _ax2.set_xlabel("")
         _ax2.set_ylabel("")

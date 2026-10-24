@@ -98,7 +98,7 @@ def _(
     pd,
 ):
     # Join the existing measurements by anonymized annotator ID.
-    # Normalize the loaded table indexes before joining them.
+    # the CSV indexes arrive with stray spaces: make them plain strings
     for T6_FRAME in (
         T6_TASK1,
         T6_TASK3,
@@ -146,6 +146,7 @@ def _(
         T6_CASES["actual_trait"] == T6_CASES["predicted_trait"]
     )
 
+    # rank the five trait scores; keep the top two and the gap
     def T6_score_summary(row):
         T6_RANKED = row[T6_SIM_COLUMNS].astype(float).sort_values(
             ascending=False
@@ -229,6 +230,7 @@ def _(T6_SELECTED, T6_SPEAKERS, T6_BUCKET_RATES, T6_TRAITS, pd):
             )
         }
 
+    # build the exact number dict the LLM will see, one per case
     T6_EVIDENCE_BY_ID = {}
 
     for T6_EVIDENCE_ANNOTATOR, T6_ROW in T6_SELECTED.iterrows():
