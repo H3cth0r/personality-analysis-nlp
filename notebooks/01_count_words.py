@@ -128,18 +128,18 @@ def _(SPEAKERS, counting, plt):
     from matplotlib.ticker import MaxNLocator
 
     T1_FIG, T1_AXES = plt.subplots(6, 6, figsize=(17, 14), sharex=False)
-    for ax, (name, pile) in zip(T1_AXES.flat, SPEAKERS.groupby("annotator")):
-        series = counting.chunked_series(pile["english_item"], chunks=10)
-        ax.plot(series["tokens"], series["repetitions"], label="repetitions")
-        ax.plot(series["tokens"], series["no_words"], label="negations")
-        ax.plot(series["tokens"], series["yes_words"], label="confirmations")
-        ax.set_title(f"{name} ({int(pile.shape[0])} texts)", fontsize=9)
-        ax.tick_params(labelsize=7)
-        ax.xaxis.set_major_locator(MaxNLocator(4))
-        ax.yaxis.set_major_locator(MaxNLocator(5))
-    for ax in T1_AXES.flat:
-        ax.set_xlabel("")
-        ax.set_ylabel("")
+    for _ax1, (_name, _pile) in zip(T1_AXES.flat, SPEAKERS.groupby("annotator")):
+        _series = counting.chunked_series(_pile["english_item"], chunks=10)
+        _ax1.plot(_series["tokens"], _series["repetitions"], label="repetitions")
+        _ax1.plot(_series["tokens"], _series["no_words"], label="negations")
+        _ax1.plot(_series["tokens"], _series["yes_words"], label="confirmations")
+        _ax1.set_title(f"{_name} ({int(_pile.shape[0])} texts)", fontsize=9)
+        _ax1.tick_params(labelsize=7)
+        _ax1.xaxis.set_major_locator(MaxNLocator(4))
+        _ax1.yaxis.set_major_locator(MaxNLocator(5))
+    for _ax2 in T1_AXES.flat:
+        _ax2.set_xlabel("")
+        _ax2.set_ylabel("")
     T1_AXES[0, 0].legend(fontsize=8)
     T1_FIG.supxlabel("tokens so far")
     T1_FIG.tight_layout()

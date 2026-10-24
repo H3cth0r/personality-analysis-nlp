@@ -3,8 +3,11 @@ from pathlib import Path
 
 import pandas as pd
 
-RAW_DIR = Path("data/raw")
-PROCESSED_DIR = Path("data/processed")
+# anchored to the repo, not to the caller's working directory: the
+# notebook kernels and graders may sit anywhere
+ROOT = Path(__file__).parents[2]
+RAW_DIR = ROOT / "data/raw"
+PROCESSED_DIR = ROOT / "data/processed"
 
 ANNOTATORS = range(1, 37)
 EMO_COLS = [f"E{n}_emotion" for n in ANNOTATORS]
